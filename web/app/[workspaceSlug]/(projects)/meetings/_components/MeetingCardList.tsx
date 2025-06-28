@@ -22,7 +22,7 @@ const dummyMeetings: Meeting[] = [
   {
     id: "1",
     title: "Live Design Review",
-    date: "2025-06-27",
+    date: "2025-06-29",
     startTime: "18:00",
     endTime: "24:00",
     host: "Me",
@@ -31,7 +31,7 @@ const dummyMeetings: Meeting[] = [
   {
     id: "2",
     title: "Client Sync",
-    date: "2025-06-27",
+    date: "2025-06-29",
     startTime: "18:00",
     endTime: "22:59",
     host: "Me",
@@ -49,9 +49,9 @@ const dummyMeetings: Meeting[] = [
   {
     id: "4",
     title: "Team Retrospective",
-    date: "2025-06-20",
-    startTime: "14:00",
-    endTime: "15:00",
+    date: "2025-06-28",
+    startTime: "20:00",
+    endTime: "22:00",
     host: "Bob",
     description: "Reviewing the last sprint and identifying improvements.",
   },

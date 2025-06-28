@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Plus, Clock, Trash2, StickyNote } from 'lucide-react';
+import { useState } from "react";
+import { Plus, Clock, Trash2, StickyNote } from "lucide-react";
 
-const users = ['Mamun Hasan', 'Sumaiya', 'Salam Hossain'];
+const users = ["Mamun Hasan", "Sumaiya", "Salam Hossain"];
 
 type ActionItem = {
   name: string;
@@ -23,29 +23,26 @@ type AgendaItem = {
 export default function MeetingMinutesForm() {
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([
     {
-      agenda: 'Product Plan & TG2',
-      owner: 'Salam Hossain',
-      time: '12:10 - 13:00',
+      agenda: "Product Plan & TG2",
+      owner: "Salam Hossain",
+      time: "12:10 - 13:00",
       actions: [],
-      note: '',
+      note: "",
     },
   ]);
 
   const handleAddAgenda = () => {
-    setAgendaItems([
-      ...agendaItems,
-      { agenda: '', owner: '', time: '', actions: [], note: '' },
-    ]);
+    setAgendaItems([...agendaItems, { agenda: "", owner: "", time: "", actions: [], note: "" }]);
   };
 
   const handleAddAction = (agendaIdx: number) => {
     const updated = [...agendaItems];
     const owner = updated[agendaIdx].owner;
     updated[agendaIdx].actions.push({
-      name: '',
-      assignee: owner || '',
-      dueDate: '',
-      priority: '',
+      name: "",
+      assignee: owner || "",
+      dueDate: "",
+      priority: "",
     });
     setAgendaItems(updated);
   };
@@ -57,10 +54,10 @@ export default function MeetingMinutesForm() {
   };
 
   const handleRemoveAgenda = (agendaIdx: number) => {
-  const updated = [...agendaItems];
-  updated.splice(agendaIdx, 1);
-  setAgendaItems(updated);
-   };
+    const updated = [...agendaItems];
+    updated.splice(agendaIdx, 1);
+    setAgendaItems(updated);
+  };
 
   const handleNoteChange = (idx: number, value: string) => {
     const updated = [...agendaItems];
@@ -81,17 +78,14 @@ export default function MeetingMinutesForm() {
 
       {/* Basic Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {['Chairperson', 'Host', 'Participants'].map((label, i) => (
+        {/* // 'Chairperson', "Host", "Participants" */}
+        {["Host", "Participants"].map((label, i) => (
           <div key={i}>
             <label className="text-sm font-semibold text-gray-300 mb-2 block">{label}</label>
             <input
               type="text"
               defaultValue={
-                label === 'Chairperson'
-                  ? 'Steve Jobs'
-                  : label === 'Host'
-                  ? 'Mamun Hasan'
-                  : 'Sumaiya, Salam, Ibrahim'
+                label === "Chairperson" ? "Steve Jobs" : label === "Host" ? "Mamun Hasan" : "Sumaiya, Salam, Ibrahim"
               }
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
             />
@@ -115,13 +109,13 @@ export default function MeetingMinutesForm() {
         {agendaItems.map((item, idx) => (
           <div key={idx} className="border border-gray-700 rounded-lg relative p-5 space-y-5 bg-gray-800">
             <button
-                onClick={() => handleRemoveAgenda(idx)}
-                className="absolute top-2 right-2 text-red-400 hover:text-red-600"
-                title="Delete agenda item"
-                type="button"
-                >
-                <Trash2 className="w-5 h-5" />
-           </button>
+              onClick={() => handleRemoveAgenda(idx)}
+              className="absolute top-2 right-2 text-red-400 hover:text-red-600"
+              title="Delete agenda item"
+              type="button"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
             {/* Agenda Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="md:col-span-3">
@@ -224,15 +218,12 @@ export default function MeetingMinutesForm() {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-semibold text-gray-300">Notes / Decisions</label>
-                <button
-                  type="button"
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-white"
-                >
+                <button type="button" className="flex items-center gap-1 text-sm text-gray-400 hover:text-white">
                   <StickyNote className="w-4 h-4" /> Add Note
                 </button>
               </div>
               <textarea
-                value={item.note || ''}
+                value={item.note || ""}
                 onChange={(e) => handleNoteChange(idx, e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
                 rows={3}
