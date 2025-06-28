@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { PencilIcon } from "lucide-react";
 import { ContentWrapper } from "@plane/ui";
 // edit icon
@@ -20,9 +22,9 @@ const dummyMeetings: Meeting[] = [
   {
     id: "1",
     title: "Live Design Review",
-    date: "2025-06-26",
-    startTime: "01:00",
-    endTime: "03:00",
+    date: "2025-06-27",
+    startTime: "18:00",
+    endTime: "24:00",
     host: "Me",
     description: "Design review with live feedback.",
   },
@@ -30,8 +32,8 @@ const dummyMeetings: Meeting[] = [
     id: "2",
     title: "Client Sync",
     date: "2025-06-27",
-    startTime: "23:00",
-    endTime: "23:59",
+    startTime: "18:00",
+    endTime: "22:59",
     host: "Me",
     description: "Real-time discussion with the client on project status.",
   },
@@ -66,6 +68,8 @@ const dummyMeetings: Meeting[] = [
 
 export default function MeetingCardList() {
   const now = new Date();
+  const router = useRouter();
+  const { workspaceSlug } = useParams();
 
   const { live, upcoming, previous } = useMemo(() => {
     const live: Meeting[] = [];
@@ -112,15 +116,12 @@ export default function MeetingCardList() {
           className="block rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-sm hover:shadow-md transition text-white relative"
         >
           {meeting.host === "Me" && !(meetingLabel === "previous") && (
-            <button
-              onClick={(e) => {
-                e.preventDefault(); // prevent link navigation
-                alert(`Edit Meeting: ${meeting.title}`);
-              }}
+            <Link
+              href={`/${workspaceSlug?.toString()}/meetings/create-meeting`}
               className="absolute top-2 right-2 p-1 rounded hover:bg-gray-700"
             >
               <PencilIcon size={18} />
-            </button>
+            </Link>
           )}
           <h3 className="text-lg font-semibold mb-1">{meeting.title}</h3>
           <p className="text-sm text-gray-300 mb-1">
@@ -136,14 +137,12 @@ export default function MeetingCardList() {
           {/* <p className="text-sm text-gray-200">{meeting.description}</p> */}
           {isLive && (
             <div className="mt-2">
-              <a
-                // href={meeting.joinLink}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/${workspaceSlug?.toString()}/meetings/meeting-minute`}
                 className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
               >
                 Join
-              </a>
+              </Link>
             </div>
           )}
         </a>
