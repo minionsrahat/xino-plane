@@ -2,9 +2,20 @@
 
 import { useState } from "react";
 import { Eye, Plus, Trash2, X } from "lucide-react"; // You already use these
+import { setToast, TOAST_TYPE } from "@plane/ui";
+import { useMeeting } from "@/hooks/store/use-meeting";
+import { useParams } from "next/navigation";
+import { useTranslation } from "@plane/i18n";
+const users = [
+  { id: 1, name: "Mamun Hasan" },
+  { id: 2, name: "Sumaiya" },
+  { id: 3, name: "Salam Hossain" },
+  { id: 4, name: "Steve Jobs" },
+];
 
 export default function MeetingForm() {
-  const users = ["Mamun Hasan", "Sumaiya", "Salam Hossain", "Steve Jobs"];
+  const { workspaceSlug } = useParams();
+
   const selfUser = "Mamun Hasan";
   const [formSubmitState, setFormSubmitState] = useState("");
   const [subject, setSubject] = useState("");
@@ -17,6 +28,8 @@ export default function MeetingForm() {
   const [participants, setParticipants] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [agendaItems, setAgendaItems] = useState([{ agenda: "Project Kickoff", owner: selfUser, duration: "30 min" }]);
+  const { addMeeting, updateMeeting } = useMeeting();
+  const { t } = useTranslation();
 
   const addAgenda = () => setAgendaItems([...agendaItems, { agenda: "", owner: "", duration: "" }]);
 
@@ -38,20 +51,49 @@ export default function MeetingForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const start_time = `${date} ${startTime}:00`;
+    const end_time = `${date} ${endTime}:00`;
+    const selectedParticipants = users.filter((user) => participants.includes(user.id.toString()));
+    const updatedAgendas = agendaItems.map((item) => {
+      const ownerData = users.find((u) => u.name === item.owner);
+      return {
+        ...item,
+        assignees: ownerData || item.owner, // fallback to original string if not found
+      };
+    });
 
-    const formData = {
-      date,
-      startTime,
-      endTime,
+    const payload = {
+      subject,
+      description,
+      start_time,
+      end_time,
       host,
-      participants,
-      agendaItems,
-      attachments,
+      participants: selectedParticipants,
+      agendas: updatedAgendas,
     };
 
-    console.log("FORM DATA:", formData, formSubmitState);
-    // API submission can be done here
-    setFormSubmitState("");
+    console.log("FORM DATA:", payload, formSubmitState);
+
+    setFormSubmitState("submitting");
+
+    addMeeting(workspaceSlug.toString(), payload)
+      .then(() => {
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: t("success"),
+          message: t("meeting_created_successfully"),
+        });
+        // Optionally reset form here
+        setFormSubmitState("");
+      })
+      .catch(() => {
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: t("error"),
+          message: t("something_went_wrong"),
+        });
+        setFormSubmitState("");
+      });
   };
 
   return (
@@ -155,7 +197,7 @@ export default function MeetingForm() {
             className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-600"
           >
             {users.map((u) => (
-              <option key={u}>{u}</option>
+              <option key={u?.id}>{u?.name}</option>
             ))}
           </select>
         </div>
@@ -192,10 +234,10 @@ export default function MeetingForm() {
             >
               <option value="">Select participant</option>
               {users
-                .filter((u) => !participants.includes(u))
+                .filter((u) => !participants.includes(u?.name))
                 .map((user) => (
-                  <option key={user} value={user}>
-                    {user}
+                  <option key={user?.id} value={user?.id}>
+                    {user?.name}
                   </option>
                 ))}
             </select>
@@ -229,8 +271,8 @@ export default function MeetingForm() {
                 >
                   <option value="">Select owner</option>
                   {users.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
+                    <option key={u?.id} value={u?.name}>
+                      {u?.name}
                     </option>
                   ))}
                 </select>
