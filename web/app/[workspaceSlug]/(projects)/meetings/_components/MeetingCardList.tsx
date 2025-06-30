@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { PencilIcon } from "lucide-react";
 import { ContentWrapper } from "@plane/ui";
+import { useMeeting } from "@/hooks/store/use-meeting";
+import useSWR from "swr";
 // edit icon
 
 type Meeting = {
@@ -70,6 +72,15 @@ export default function MeetingCardList() {
   const now = new Date();
   const router = useRouter();
   const { workspaceSlug } = useParams();
+  const meetingStore = useMeeting();
+
+  // fetch workspace favorite
+  useSWR(
+    workspaceSlug ? `WORKSPACE_MEETINGS_${workspaceSlug}` : null,
+    workspaceSlug ? () => meetingStore.fetchMeetings(workspaceSlug.toString()) : null,
+    { revalidateIfStale: false, revalidateOnFocus: false }
+  );
+  console.log("data_meeting", meetingStore.meetings);
 
   const { live, upcoming, previous } = useMemo(() => {
     const live: Meeting[] = [];

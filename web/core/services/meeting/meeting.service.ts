@@ -34,7 +34,11 @@ export class MeetingService extends APIService {
   }
 
   async getMeetings(workspaceSlug: string): Promise<IMeeting[]> {
-    return this.get(`/api/workspaces/${workspaceSlug}/meetings/`)
+    return this.get(`/api/workspaces/${workspaceSlug}/meetings/`, {
+      params: {
+        all: true
+      }
+    })
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response;
