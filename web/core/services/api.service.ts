@@ -18,7 +18,7 @@ export abstract class APIService {
   private setupInterceptors() {
     this.axiosInstance.interceptors.response.use(
       (response) => {
-        console.log("config_response", response)
+        // console.log("config_response", response)
         return response;
       },
       (error) => {

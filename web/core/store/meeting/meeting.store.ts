@@ -50,8 +50,10 @@ export class MeetingStore implements IMeetingStore {
         this.meetingIds = [];
         this.meetingMap = {};
         meetings.forEach((meeting) => {
-          this.meetingMap[meeting.id] = meeting;
-          this.meetingIds.push(meeting.id);
+          if (meeting?.id) {
+            this.meetingMap[meeting?.id] = meeting;
+            this.meetingIds.push(meeting?.id);
+          }
         });
       });
     } catch (error) {
@@ -72,8 +74,10 @@ export class MeetingStore implements IMeetingStore {
 
       runInAction(() => {
         delete this.meetingMap[tempId];
-        this.meetingMap[newMeeting.id] = newMeeting;
-        this.meetingIds = [newMeeting.id, ...this.meetingIds.filter((id) => id !== tempId)];
+        if (newMeeting?.id) {
+          this.meetingMap[newMeeting?.id] = newMeeting;
+          this.meetingIds = [newMeeting?.id, ...this.meetingIds.filter((id) => id !== tempId)];
+        }
       });
 
       return newMeeting;
