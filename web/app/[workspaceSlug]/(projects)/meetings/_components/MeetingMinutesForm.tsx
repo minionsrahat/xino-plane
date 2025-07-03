@@ -1,72 +1,134 @@
 "use client";
-
 import { useState } from "react";
-import { Plus, Clock, Trash2, StickyNote } from "lucide-react";
+import { Clock, Plus, Trash2, StickyNote } from "lucide-react";
 
-const users = ["Mamun Hasan", "Sumaiya", "Salam Hossain"];
+// Simulated user list with IDs and names
+const users = [
+  { id: "uuid1", name: "Salam Hossain" },
+  { id: "uuid2", name: "Mamun Hasan" },
+  { id: "uuid3", name: "Sumaiya" },
+  { id: "uuid4", name: "Ibrahim" },
+];
 
 type ActionItem = {
   name: string;
-  assignee: string;
+  assignees: string[];
   dueDate: string;
   priority: string;
 };
 
 type AgendaItem = {
+  id: string;
   agenda: string;
-  owner: string;
+  ownerIds: string[];
   time: string;
   actions: ActionItem[];
-  note?: string;
+  note: string;
 };
 
 export default function MeetingMinutesForm() {
+  const [host, setHost] = useState<string>(users[1].id);
+  const [participants, setParticipants] = useState<string[]>([users[2].id, users[0].id, users[3].id]);
+  const [summary, setSummary] = useState("");
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([
     {
+      id: "a-1",
       agenda: "Product Plan & TG2",
-      owner: "Salam Hossain",
-      time: "12:10 - 13:00",
+      ownerIds: [users[0].id],
+      time: "12:10 – 13:00",
       actions: [],
       note: "",
     },
   ]);
 
+  const handleAgendaChange = (idx: number, field: keyof AgendaItem, value: any) => {
+    const copy = [...agendaItems];
+    copy[idx] = { ...copy[idx], [field]: value };
+    setAgendaItems(copy);
+  };
+
   const handleAddAgenda = () => {
-    setAgendaItems([...agendaItems, { agenda: "", owner: "", time: "", actions: [], note: "" }]);
+    setAgendaItems((prev) => [
+      ...prev,
+      {
+        id: `a-${Date.now()}`,
+        agenda: "",
+        ownerIds: [],
+        time: "",
+        actions: [],
+        note: "",
+      },
+    ]);
   };
 
-  const handleAddAction = (agendaIdx: number) => {
-    const updated = [...agendaItems];
-    const owner = updated[agendaIdx].owner;
-    updated[agendaIdx].actions.push({
+  const handleRemoveAgenda = (idx: number) => {
+    setAgendaItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleAddAction = (aIdx: number) => {
+    const copy = [...agendaItems];
+    copy[aIdx].actions.push({
       name: "",
-      assignee: owner || "",
+      assignees: [...copy[aIdx].ownerIds],
       dueDate: "",
-      priority: "",
+      priority: "Low",
     });
-    setAgendaItems(updated);
+    setAgendaItems(copy);
   };
 
-  const handleRemoveAction = (agendaIdx: number, actionIdx: number) => {
-    const updated = [...agendaItems];
-    updated[agendaIdx].actions.splice(actionIdx, 1);
-    setAgendaItems(updated);
+  const handleActionChange = (aIdx: number, actIdx: number, field: keyof ActionItem, value: any) => {
+    const copy = [...agendaItems];
+    const act = { ...copy[aIdx].actions[actIdx], [field]: value };
+    copy[aIdx].actions[actIdx] = act;
+    setAgendaItems(copy);
   };
 
-  const handleRemoveAgenda = (agendaIdx: number) => {
-    const updated = [...agendaItems];
-    updated.splice(agendaIdx, 1);
-    setAgendaItems(updated);
+  const handleRemoveAction = (aIdx: number, actIdx: number) => {
+    const copy = [...agendaItems];
+    copy[aIdx].actions.splice(actIdx, 1);
+    setAgendaItems(copy);
   };
 
-  const handleNoteChange = (idx: number, value: string) => {
-    const updated = [...agendaItems];
-    updated[idx].note = value;
-    setAgendaItems(updated);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const meeting = {
+      subject: "IT Business Opening",
+      description: summary,
+      start_time: "2023-12-01 12:10:00",
+      end_time: "2023-12-01 16:00:00",
+      host,
+      participants,
+      agendas: agendaItems.map((item) => ({
+        id: item.id,
+        title: item.agenda,
+        duration_minutes: (() => {
+          const [from, to] = item.time.split("–").map((s) => s.trim());
+          const [h1, m1] = from.split(":").map(Number);
+          const [h2, m2] = to.split(":").map(Number);
+          return h2 * 60 + m2 - (h1 * 60 + m1);
+        })(),
+        assignees: item.ownerIds,
+        actions: item.actions.map((a) => ({
+          name: a.name,
+          assignees: a.assignees,
+          dueDate: a.dueDate,
+          priority: a.priority,
+        })),
+        note: item.note,
+      })),
+      attachments: [] as File[],
+    };
+
+    console.log("Submitting meeting:", meeting);
+    // send via API...
   };
 
   return (
-    <form className="bg-gray-900 text-gray-100 shadow-xl rounded-2xl p-6 max-w-[90%] mx-auto space-y-8">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gray-900 text-gray-100 shadow-xl rounded-2xl p-6 max-w-[90%] mx-auto space-y-8"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h2 className="text-2xl font-semibold text-white">IT Business Opening</h2>
@@ -78,22 +140,38 @@ export default function MeetingMinutesForm() {
 
       {/* Basic Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* // 'Chairperson', "Host", "Participants" */}
-        {["Host", "Participants"].map((label, i) => (
-          <div key={i}>
-            <label className="text-sm font-semibold text-gray-300 mb-2 block">{label}</label>
-            <input
-              type="text"
-              defaultValue={
-                label === "Chairperson" ? "Steve Jobs" : label === "Host" ? "Mamun Hasan" : "Sumaiya, Salam, Ibrahim"
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
-            />
-          </div>
-        ))}
+        <div>
+          <label className="text-sm font-semibold text-gray-300 mb-2 block">Host</label>
+          <select
+            value={host}
+            onChange={(e) => setHost(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+          >
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-sm font-semibold text-gray-300 mb-2 block">Participants</label>
+          <select
+            multiple
+            value={participants}
+            onChange={(e) => setParticipants(Array.from(e.target.selectedOptions).map((o) => o.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+          >
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Agendas */}
+      {/* Agendas Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-white">Agenda</h3>
@@ -107,34 +185,43 @@ export default function MeetingMinutesForm() {
         </div>
 
         {agendaItems.map((item, idx) => (
-          <div key={idx} className="border border-gray-700 rounded-lg relative p-5 space-y-5 bg-gray-800">
+          <div key={item.id} className="border border-gray-700 rounded-lg relative p-5 space-y-5 bg-gray-800">
             <button
               onClick={() => handleRemoveAgenda(idx)}
               className="absolute top-2 right-2 text-red-400 hover:text-red-600"
-              title="Delete agenda item"
               type="button"
             >
               <Trash2 className="w-5 h-5" />
             </button>
-            {/* Agenda Inputs */}
+
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="md:col-span-3">
                 <label className="text-sm font-semibold text-gray-300 block mb-1">Agenda</label>
                 <input
                   type="text"
-                  defaultValue={item.agenda}
+                  value={item.agenda}
+                  onChange={(e) => handleAgendaChange(idx, "agenda", e.target.value)}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-gray-300 block mb-1">Owner</label>
+                <label className="text-sm font-semibold text-gray-300 block mb-1">Owner(s)</label>
                 <select
-                  defaultValue={item.owner}
+                  multiple
+                  value={item.ownerIds}
+                  onChange={(e) =>
+                    handleAgendaChange(
+                      idx,
+                      "ownerIds",
+                      Array.from(e.target.selectedOptions).map((o) => o.value)
+                    )
+                  }
                   className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
                 >
-                  <option disabled>Select owner</option>
-                  {users.map((u, i) => (
-                    <option key={i}>{u}</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -142,8 +229,9 @@ export default function MeetingMinutesForm() {
                 <label className="text-sm font-semibold text-gray-300 block mb-1">Time</label>
                 <input
                   type="text"
-                  defaultValue={item.time}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
+                  value={item.time}
+                  onChange={(e) => handleAgendaChange(idx, "time", e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                 />
               </div>
             </div>
@@ -154,14 +242,14 @@ export default function MeetingMinutesForm() {
                 <h4 className="font-medium text-gray-200">Action Items</h4>
                 <button
                   type="button"
-                  className="text-sm flex items-center gap-1 px-2 py-1 border border-gray-600 rounded hover:bg-gray-700 text-gray-200"
                   onClick={() => handleAddAction(idx)}
+                  className="text-sm flex items-center gap-1 px-2 py-1 border border-gray-600 rounded hover:bg-gray-700 text-gray-200"
                 >
                   <Plus className="w-4 h-4" /> Add Action
                 </button>
               </div>
 
-              {item.actions.map((action, aIdx) => (
+              {item.actions.map((act, aIdx) => (
                 <div
                   key={aIdx}
                   className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-900 p-4 border border-gray-700 rounded-md"
@@ -170,42 +258,94 @@ export default function MeetingMinutesForm() {
                     <label className="text-sm font-medium text-gray-300 block mb-1">Action</label>
                     <input
                       type="text"
-                      placeholder="Action name"
+                      value={act.name}
+                      onChange={(e) => handleActionChange(idx, aIdx, "name", e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="text-sm font-medium text-gray-300 block mb-1">Assignee</label>
-                    <select
-                      defaultValue={action.assignee}
+                    <label className="text-sm font-medium text-gray-300 block mb-1">Assignee(s)</label>
+                    {/* <select
+                      multiple
+                      value={act.assignees}
+                      onChange={(e) =>
+                        handleActionChange(
+                          idx,
+                          aIdx,
+                          "assignees",
+                          Array.from(e.target.selectedOptions).map((o) => o.value)
+                        )
+                      }
                       className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
                     >
-                      <option disabled>Select user</option>
-                      {users.map((u, i) => (
-                        <option key={i}>{u}</option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
                       ))}
-                    </select>
+                    </select> */}
+                    <div className="bg-gray-800 border border-gray-600 p-2 rounded-lg">
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {participants.map((p) => (
+                          <span key={p} className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                            {users.find((u) => u.id === p)?.name || p}
+                            <button
+                              type="button"
+                              onClick={() => setParticipants(participants.filter((id) => id !== p))}
+                              className="text-red-400 hover:text-red-200"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <select
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          if (selected && !participants.includes(selected)) {
+                            setParticipants([...participants, selected]);
+                          }
+                          e.target.selectedIndex = 0;
+                        }}
+                        className="w-full bg-gray-700 border border-gray-600 px-4 py-2 rounded-md"
+                      >
+                        <option value="">Select Assignee</option>
+                        {users
+                          .filter((u) => !participants.includes(u.id))
+                          .map((u) => (
+                            <option key={u.name} value={u.id}>
+                              {u.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="md:col-span-3">
                     <label className="text-sm font-medium text-gray-300 block mb-1">Due Date</label>
                     <input
                       type="date"
+                      value={act.dueDate}
+                      onChange={(e) => handleActionChange(idx, aIdx, "dueDate", e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
                     />
                   </div>
                   <div className="md:col-span-1">
                     <label className="text-sm font-medium text-gray-300 block mb-1">Priority</label>
-                    <select className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white">
-                      <option>Low</option>
-                      <option>Medium</option>
-                      <option>High</option>
+                    <select
+                      value={act.priority}
+                      onChange={(e) => handleActionChange(idx, aIdx, "priority", e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+                    >
+                      {["Low", "Medium", "High"].map((p) => (
+                        <option key={p}>{p}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="md:col-span-1 flex justify-center pt-6">
                     <button
                       type="button"
-                      className="text-red-400 hover:text-red-600"
                       onClick={() => handleRemoveAction(idx, aIdx)}
+                      className="text-red-400 hover:text-red-600"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -214,7 +354,7 @@ export default function MeetingMinutesForm() {
               ))}
             </div>
 
-            {/* Notes/Decisions */}
+            {/* Notes */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-semibold text-gray-300">Notes / Decisions</label>
@@ -223,8 +363,8 @@ export default function MeetingMinutesForm() {
                 </button>
               </div>
               <textarea
-                value={item.note || ""}
-                onChange={(e) => handleNoteChange(idx, e.target.value)}
+                value={item.note}
+                onChange={(e) => handleAgendaChange(idx, "note", e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
                 rows={3}
                 placeholder="Add meeting notes or decisions for this agenda..."
@@ -238,6 +378,8 @@ export default function MeetingMinutesForm() {
       <div>
         <label className="text-sm font-semibold text-gray-300 block mb-2">Meeting Summary</label>
         <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
           className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
           rows={4}
           placeholder="Final meeting summary..."

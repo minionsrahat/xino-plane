@@ -8,6 +8,8 @@ export interface IAgenda {
   title: string;
   duration_minutes: number;
   assignees?: IUser[];
+  actions?: ActionItem[];
+  note?: string;
 }
 
 export interface IMeeting {
@@ -22,3 +24,11 @@ export interface IMeeting {
   agendas?: IAgenda[];
   attachments: File[];
 }
+
+
+type ActionItem = {
+  name: string;
+  assignee: string;
+  dueDate: string;
+  priority: string;
+};
