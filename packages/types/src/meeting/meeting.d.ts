@@ -1,6 +1,8 @@
 export interface IUser {
   id: string;
   name?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface IAgenda {

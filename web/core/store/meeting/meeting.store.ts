@@ -11,6 +11,7 @@ export interface IMeetingError {
   message: string;
 }
 
+
 export interface IMeetingStore {
   // Observables
   meetingIds: string[];

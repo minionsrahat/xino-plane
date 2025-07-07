@@ -207,7 +207,7 @@ const MeetingCardList = observer(() => {
           {isToday(meeting?.start_time) && (
             <div className="mt-2">
               <Link
-                href={`/${workspaceSlug?.toString()}/meetings/meeting-minute`}
+                href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
                 className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
               >
                 Join

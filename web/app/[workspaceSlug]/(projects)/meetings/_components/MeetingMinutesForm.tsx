@@ -1,13 +1,16 @@
 "use client";
 import { useState } from "react";
 import { Clock, Plus, Trash2, StickyNote } from "lucide-react";
+import { IMeeting, IUser } from "@plane/types/src/meeting";
+import { MeetingStore } from "@/store/meeting/meeting.store";
+import { useMeeting } from "@/hooks/store/use-meeting";
+import { useParams } from "next/navigation";
+import { observer } from "mobx-react";
 
 // Simulated user list with IDs and names
-const users = [
-  { id: "uuid1", name: "Salam Hossain" },
-  { id: "uuid2", name: "Mamun Hasan" },
-  { id: "uuid3", name: "Sumaiya" },
-  { id: "uuid4", name: "Ibrahim" },
+export const users: IUser[] = [
+  { id: "9a1aeba2-8eee-4939-a7f9-833d49970f58", name: "Rahim Uddin" },
+  // { id: "9a1aeba2-8eee-4939-a7f9-833d49970f58", name: "Salam Hossain" },
 ];
 
 type ActionItem = {
@@ -26,9 +29,15 @@ type AgendaItem = {
   note: string;
 };
 
-export default function MeetingMinutesForm() {
-  const [host, setHost] = useState<string>(users[1].id);
-  const [participants, setParticipants] = useState<string[]>([users[2].id, users[0].id, users[3].id]);
+export interface IHost {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+const MeetingMinutesForm = observer(() => {
+  const [host, setHost] = useState<IHost>(users[1]);
+  const [participants, setParticipants] = useState<IUser>(users[1]);
   const [summary, setSummary] = useState("");
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([
     {
@@ -40,6 +49,9 @@ export default function MeetingMinutesForm() {
       note: "",
     },
   ]);
+  const meetingStore = useMeeting();
+  const { meetingId } = useParams();
+  const meetingData = meetingId ? meetingStore?.meetings?.find((meeting) => meeting.id === meetingId) : undefined;
 
   const handleAgendaChange = (idx: number, field: keyof AgendaItem, value: any) => {
     const copy = [...agendaItems];
@@ -131,10 +143,10 @@ export default function MeetingMinutesForm() {
     >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-semibold text-white">IT Business Opening</h2>
+        <h2 className="text-2xl font-semibold text-white">{meetingData?.subject}</h2>
         <div className="flex items-center text-gray-400">
           <Clock className="w-5 h-5 mr-2" />
-          <span>1st Dec 2023 | 12:10 – 16:00</span>
+          <span>{meetingData?.start_time?.split("T")?.[0]} | 12:10 – 16:00</span>
         </div>
       </div>
 
@@ -142,32 +154,22 @@ export default function MeetingMinutesForm() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Host</label>
-          <select
+          {/* <input
+            type="text"
             value={host}
-            onChange={(e) => setHost(e.target.value)}
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
-          >
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+            readOnly
+          /> */}
+          <p>{`${meetingData?.host?.first_name} ${meetingData?.host?.last_name}`}</p>
         </div>
         <div>
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Participants</label>
-          <select
-            multiple
-            value={participants}
-            onChange={(e) => setParticipants(Array.from(e.target.selectedOptions).map((o) => o.value))}
+          {/* <input
+            type="text"
+            value={host?.name}
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
-          >
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+            readOnly
+          /> */}
         </div>
       </div>
 
@@ -286,7 +288,7 @@ export default function MeetingMinutesForm() {
                     </select> */}
                     <div className="bg-gray-800 border border-gray-600 p-2 rounded-lg">
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {participants.map((p) => (
+                        {/* {participants.map((p) => (
                           <span key={p} className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
                             {users.find((u) => u.id === p)?.name || p}
                             <button
@@ -297,9 +299,9 @@ export default function MeetingMinutesForm() {
                               ×
                             </button>
                           </span>
-                        ))}
+                        ))} */}
                       </div>
-                      <select
+                      {/* <select
                         onChange={(e) => {
                           const selected = e.target.value;
                           if (selected && !participants.includes(selected)) {
@@ -317,7 +319,7 @@ export default function MeetingMinutesForm() {
                               {u.name}
                             </option>
                           ))}
-                      </select>
+                      </select> */}
                     </div>
                   </div>
                   <div className="md:col-span-3">
@@ -397,4 +399,6 @@ export default function MeetingMinutesForm() {
       </div>
     </form>
   );
-}
+});
+
+export default MeetingMinutesForm;
