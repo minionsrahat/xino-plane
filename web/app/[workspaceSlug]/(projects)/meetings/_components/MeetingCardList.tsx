@@ -1,16 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
+import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { PencilIcon } from "lucide-react";
-import { ContentWrapper } from "@plane/ui";
-import { useMeeting } from "@/hooks/store/use-meeting";
 import useSWR from "swr";
-import { observer } from "mobx-react";
+import { PencilIcon } from "lucide-react";
 import { IMeeting } from "@plane/types";
-import { formatTimeRange, isDatePassed, isToday } from "../utils/dateUtils";
+import { ContentWrapper } from "@plane/ui";
 import { LogoSpinner } from "@/components/common";
+import { useMeeting } from "@/hooks/store/use-meeting";
+import { formatTimeRange, isDatePassed, isToday } from "../utils/dateUtils";
 // edit icon
 
 type Meeting = {
@@ -204,7 +204,7 @@ const MeetingCardList = observer(() => {
             <strong>Host:</strong> {meeting?.host?.first_name} {meeting?.host?.last_name}
           </p>
           {/* <p className="text-sm text-gray-200">{meeting.description}</p> */}
-          {isToday(meeting?.start_time) && (
+          {!isToday(meeting?.start_time) && (
             <div className="mt-2">
               <Link
                 href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
@@ -250,7 +250,7 @@ const MeetingCardList = observer(() => {
           ) : (
             <p className="text-gray-400">No previous meetings.</p>
           )}
-        
+
         </div> */}
       </div>
     </ContentWrapper>
@@ -258,3 +258,70 @@ const MeetingCardList = observer(() => {
 });
 
 export default MeetingCardList;
+
+const statuses = [
+  {
+    label: "Upcoming",
+    items: [
+      {
+        date: "2018-04-07",
+        company: "UAB Microsoft",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Fix payment", type: "button" },
+      },
+    ],
+  },
+  {
+    label: "Completed",
+    items: [
+      {
+        date: "2018-04-03",
+        company: "UAB IBM",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Fix payment", type: "button" },
+      },
+      {
+        date: "2018-04-02",
+        company: "UAB TransGuru",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Fix payment", type: "button" },
+      },
+      {
+        date: "2018-03-28",
+        company: "UAB Flex Digital",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Paid 2017-01-01", type: "label" },
+      },
+      {
+        date: "2018-03-20",
+        company: "UAB Apple Store",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Paid 2017-01-01", type: "label" },
+      },
+    ],
+  },
+  {
+    label: "Draft",
+    items: [
+      {
+        date: "2018-02-20",
+        company: "UAB IBM",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Paid 2017-01-01", type: "label" },
+      },
+      {
+        date: "2018-02-04",
+        company: "UAB TransGuru",
+        invoice: "1,380.77 €",
+        afterTax: "1,234.56 €",
+        action: { label: "Paid 2017-01-01", type: "label" },
+      },
+    ],
+  },
+];

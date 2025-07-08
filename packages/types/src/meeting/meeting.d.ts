@@ -25,6 +25,7 @@ export interface IMeeting {
   participants?: IUser[];
   agendas?: IAgenda[];
   attachments: File[];
+  status?: string;
 }
 
 

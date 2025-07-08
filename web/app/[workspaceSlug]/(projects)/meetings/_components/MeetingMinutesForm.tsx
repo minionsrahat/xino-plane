@@ -4,8 +4,10 @@ import { Clock, Plus, Trash2, StickyNote } from "lucide-react";
 import { IMeeting, IUser } from "@plane/types/src/meeting";
 import { MeetingStore } from "@/store/meeting/meeting.store";
 import { useMeeting } from "@/hooks/store/use-meeting";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { observer } from "mobx-react";
+import { setToast, TOAST_TYPE } from "@plane/ui";
+import { useTranslation } from "@plane/i18n";
 
 // Simulated user list with IDs and names
 export const users: IUser[] = [
@@ -37,8 +39,9 @@ export interface IHost {
 
 const MeetingMinutesForm = observer(() => {
   const [host, setHost] = useState<IHost>(users[1]);
-  const [participants, setParticipants] = useState<IUser>(users[1]);
+  const [participants, setParticipants] = useState<IUser[]>(users);
   const [summary, setSummary] = useState("");
+  const { t } = useTranslation();
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([
     {
       id: "a-1",
@@ -49,9 +52,10 @@ const MeetingMinutesForm = observer(() => {
       note: "",
     },
   ]);
-  const meetingStore = useMeeting();
-  const { meetingId } = useParams();
-  const meetingData = meetingId ? meetingStore?.meetings?.find((meeting) => meeting.id === meetingId) : undefined;
+  const router = useRouter();
+  const { meetings, updateMeeting } = useMeeting();
+  const { meetingId, workspaceSlug } = useParams();
+  const meetingData = meetingId ? meetings?.find((meeting: any) => meeting.id === meetingId) : undefined;
 
   const handleAgendaChange = (idx: number, field: keyof AgendaItem, value: any) => {
     const copy = [...agendaItems];
@@ -104,36 +108,82 @@ const MeetingMinutesForm = observer(() => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // const meeting = {
+    //   subject: meetingData?.subject,
+    //   description: summary,
+    //   start_time: "2023-12-01 12:10:00",
+    //   end_time: "2023-12-01 16:00:00",
+    //   host,
+    //   participants,
+    //   agendas: agendaItems.map((item) => ({
+    //     id: item.id,
+    //     title: item.agenda,
+    //     duration_minutes: (() => {
+    //       const [from, to] = item.time.split("–").map((s) => s.trim());
+    //       const [h1, m1] = from.split(":").map(Number);
+    //       const [h2, m2] = to.split(":").map(Number);
+    //       return h2 * 60 + m2 - (h1 * 60 + m1);
+    //     })(),
+    //     assignees: item.ownerIds,
+    //     actions: item.actions.map((a) => ({
+    //       name: a.name,
+    //       assignees: a.assignees,
+    //       dueDate: a.dueDate,
+    //       priority: a.priority,
+    //     })),
+    //     note: item.note,
+    //   })),
+    //   attachments: [] as File[],
+    // };
     const meeting = {
-      subject: "IT Business Opening",
-      description: summary,
-      start_time: "2023-12-01 12:10:00",
-      end_time: "2023-12-01 16:00:00",
-      host,
-      participants,
-      agendas: agendaItems.map((item) => ({
-        id: item.id,
-        title: item.agenda,
-        duration_minutes: (() => {
-          const [from, to] = item.time.split("–").map((s) => s.trim());
-          const [h1, m1] = from.split(":").map(Number);
-          const [h2, m2] = to.split(":").map(Number);
-          return h2 * 60 + m2 - (h1 * 60 + m1);
-        })(),
-        assignees: item.ownerIds,
-        actions: item.actions.map((a) => ({
-          name: a.name,
-          assignees: a.assignees,
-          dueDate: a.dueDate,
-          priority: a.priority,
-        })),
-        note: item.note,
-      })),
-      attachments: [] as File[],
+      subject: "Project Planning",
+      description: "Q3 roadmap",
+      start_time: "2025-07-09 10:00:00",
+      end_time: "2025-07-09 11:00:00",
+      host: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
+      chairperson: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
+      participants: ["9a1aeba2-8eee-4939-a7f9-833d49970f58"],
+      agendas: [
+        {
+          id: "63958d7c-d5cb-444d-9ee6-03ec09950471",
+          title: "Backend Plan",
+          duration_minutes: 30,
+          assignees: ["9a1aeba2-8eee-4939-a7f9-833d49970f58"],
+          issues: [
+            {
+              name: "Set up DB",
+              description: "task description",
+              assignees: ["9a1aeba2-8eee-4939-a7f9-833d49970f58"],
+              target_date: "2025-07-15",
+              priority: "High",
+            },
+          ],
+          note: "Initial DB schema",
+        },
+      ],
+      attachments: [],
     };
 
     console.log("Submitting meeting:", meeting);
     // send via API...
+    //  updateMeeting(workspaceSlug?.toString()!, meetingId?.toString(), meeting)
+    //    .then(() => {
+    //      setToast({
+    //        type: TOAST_TYPE.SUCCESS,
+    //        title: t("success"),
+    //        message: t("meeting_created_successfully"),
+    //      });
+    //      //  setFormSubmitState("");
+    //      router.push(`/${workspaceSlug}/meetings`);
+    //    })
+    //    .catch(() => {
+    //      setToast({
+    //        type: TOAST_TYPE.ERROR,
+    //        title: t("error"),
+    //        message: t("something_went_wrong"),
+    //      });
+    //      //  setFormSubmitState("");
+    //    });
   };
 
   return (
@@ -154,22 +204,21 @@ const MeetingMinutesForm = observer(() => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Host</label>
-          {/* <input
+          <input
             type="text"
-            value={host}
+            value={`${meetingData?.host?.first_name} ${meetingData?.host?.last_name}`}
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
             readOnly
-          /> */}
-          <p>{`${meetingData?.host?.first_name} ${meetingData?.host?.last_name}`}</p>
+          />
         </div>
         <div>
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Participants</label>
-          {/* <input
+          <input
             type="text"
-            value={host?.name}
+            value={`${meetingData?.host?.first_name} ${meetingData?.host?.last_name}`}
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
             readOnly
-          /> */}
+          />
         </div>
       </div>
 
