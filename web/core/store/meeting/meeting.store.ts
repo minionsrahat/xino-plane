@@ -1,8 +1,6 @@
-// store/meeting.store.ts
 import { makeObservable, observable, action, runInAction, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { MeetingService } from "@/services/meeting";
-// import { CoreRootStore } from "./root.store";
 import { IMeeting } from "@plane/types";
 import { CoreRootStore } from "../root.store";
 
@@ -11,18 +9,14 @@ export interface IMeetingError {
   message: string;
 }
 
-
 export interface IMeetingStore {
-  // Observables
   meetingIds: string[];
   meetingMap: Record<string, IMeeting>;
   isLoading: boolean;
   error: IMeetingError | null;
 
-  // Computed
   meetings: IMeeting[];
 
-  // Actions
   fetchMeetings: (workspaceSlug: string) => Promise<void>;
   addMeeting: (workspaceSlug: string, data: Partial<IMeeting>) => Promise<IMeeting>;
   updateMeeting: (workspaceSlug: string, id: string, data: Partial<IMeeting>) => Promise<IMeeting>;
@@ -32,27 +26,22 @@ export interface IMeetingStore {
 }
 
 export class MeetingStore implements IMeetingStore {
-  // Observables
   meetingIds: string[] = [];
   meetingMap: Record<string, IMeeting> = {};
   isLoading = false;
   error: IMeetingError | null = null;
 
-  // Services
   meetingService: MeetingService;
 
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {
-      // Observables
       meetingIds: observable,
       meetingMap: observable,
       isLoading: observable.ref,
       error: observable,
 
-      // Computed
       meetings: computed,
 
-      // Actions
       fetchMeetings: action,
       addMeeting: action,
       updateMeeting: action,
@@ -65,7 +54,7 @@ export class MeetingStore implements IMeetingStore {
   }
 
   get meetings(): IMeeting[] {
-    return this.meetingIds.map((id) => this.meetingMap[id]).filter(Boolean);
+    return this.meetingIds.map(id => this.meetingMap[id]).filter(Boolean);
   }
 
   fetchMeetings = async (workspaceSlug: string) => {
@@ -75,17 +64,20 @@ export class MeetingStore implements IMeetingStore {
         this.error = null;
       });
 
-      const meetings = await this.meetingService.getMeetings(workspaceSlug);
+      const meetingGroups = await this.meetingService.getMeetings(workspaceSlug);
 
       runInAction(() => {
         this.meetingIds = [];
         this.meetingMap = {};
 
-        meetings.forEach((meeting) => {
-          if (meeting?.id) {
-            this.meetingMap[meeting.id] = meeting;
-            this.meetingIds.push(meeting.id);
-          }
+        // Flatten grouped response into flat IMeeting[]
+        meetingGroups.forEach(group => {
+          group.meetings.forEach(meeting => {
+            if (meeting?.id) {
+              this.meetingMap[meeting.id] = meeting;
+              this.meetingIds.push(meeting?.id);
+            }
+          });
         });
 
         this.isLoading = false;
@@ -109,7 +101,11 @@ export class MeetingStore implements IMeetingStore {
       runInAction(() => {
         this.isLoading = true;
         this.error = null;
-        this.meetingMap[tempId] = { ...data, id: tempId } as IMeeting;
+
+        this.meetingMap[tempId] = {
+          ...(data as IMeeting),
+          id: tempId,
+        };
         this.meetingIds.unshift(tempId);
       });
 
@@ -117,10 +113,12 @@ export class MeetingStore implements IMeetingStore {
 
       runInAction(() => {
         delete this.meetingMap[tempId];
+
         if (newMeeting?.id) {
           this.meetingMap[newMeeting.id] = newMeeting;
-          this.meetingIds = [newMeeting.id, ...this.meetingIds.filter((id) => id !== tempId)];
+          this.meetingIds = [newMeeting.id, ...this.meetingIds.filter(id => id !== tempId)];
         }
+
         this.isLoading = false;
       });
 
@@ -128,7 +126,8 @@ export class MeetingStore implements IMeetingStore {
     } catch (error) {
       runInAction(() => {
         delete this.meetingMap[tempId];
-        this.meetingIds = this.meetingIds.filter((id) => id !== tempId);
+        this.meetingIds = this.meetingIds.filter(id => id !== tempId);
+
         this.error = {
           status: "create-error",
           message: "Failed to create meeting",
@@ -160,12 +159,14 @@ export class MeetingStore implements IMeetingStore {
     } catch (error) {
       runInAction(() => {
         this.meetingMap[id] = original;
+
         this.error = {
           status: "update-error",
           message: "Failed to update meeting",
         };
         this.isLoading = false;
       });
+
       throw error;
     }
   };
@@ -183,19 +184,23 @@ export class MeetingStore implements IMeetingStore {
 
       runInAction(() => {
         delete this.meetingMap[id];
-        this.meetingIds = this.meetingIds.filter((mid) => mid !== id);
+        this.meetingIds = this.meetingIds.filter(mid => mid !== id);
         this.isLoading = false;
       });
     } catch (error) {
       runInAction(() => {
         this.meetingMap[id] = original;
-        if (!this.meetingIds.includes(id)) this.meetingIds.push(id);
+        if (!this.meetingIds.includes(id)) {
+          this.meetingIds.push(id);
+        }
+
         this.error = {
           status: "delete-error",
           message: "Failed to delete meeting",
         };
         this.isLoading = false;
       });
+
       throw error;
     }
   };
@@ -203,7 +208,7 @@ export class MeetingStore implements IMeetingStore {
   removeMeetingFromStore = (id: string) => {
     runInAction(() => {
       delete this.meetingMap[id];
-      this.meetingIds = this.meetingIds.filter((mid) => mid !== id);
+      this.meetingIds = this.meetingIds.filter(mid => mid !== id);
     });
   };
 

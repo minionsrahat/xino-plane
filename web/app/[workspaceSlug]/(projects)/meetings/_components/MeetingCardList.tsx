@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -11,35 +11,44 @@ import { ContentWrapper } from "@plane/ui";
 import { LogoSpinner } from "@/components/common";
 import { useMeeting } from "@/hooks/store/use-meeting";
 import { IMeetingGroup, sampleMeetings } from "../data/meetings";
+import { useMember } from "@/hooks/store";
 // edit icon
+
+function groupMeetingsByLabel(meetings: IMeeting[]): IMeetingGroup[] {
+  const groupsMap = new Map<string, IMeeting[]>();
+
+  meetings.forEach((meeting) => {
+    const label = (meeting as any).status || "Upcoming";
+
+    if (!groupsMap.has(label)) {
+      groupsMap.set(label, []);
+    }
+    groupsMap.get(label)!.push(meeting);
+  });
+
+  return Array.from(groupsMap.entries()).map(([label, meetings]) => ({
+    label,
+    meetings,
+  }));
+}
 
 const MeetingCardList = observer(() => {
   const now = new Date();
   const router = useRouter();
-  const { workspaceSlug } = useParams();
+  const { workspaceSlug, projectId } = useParams();
   const meetingStore = useMeeting();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // fetch workspace favorite
+  const {
+    project: { projectMemberIds, getProjectMemberDetails },
+  } = useMember();
+
+  // fetch workspace data
   useSWR(
     workspaceSlug ? `WORKSPACE_MEETINGS_${workspaceSlug}` : null,
     workspaceSlug ? () => meetingStore.fetchMeetings(workspaceSlug.toString()) : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
-
-  const formatDate = (isoDate: string) =>
-    new Intl.DateTimeFormat("en-US", {
-      dateStyle: "long",
-    }).format(new Date(isoDate));
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":");
-    const date = new Date();
-    date.setHours(+hours, +minutes);
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "numeric",
-    }).format(date);
-  };
 
   if (meetingStore.isLoading)
     return (
@@ -48,6 +57,8 @@ const MeetingCardList = observer(() => {
       </div>
     );
   if (meetingStore.error) return <div>{meetingStore.error.message}</div>;
+
+  const groupedMeetings = groupMeetingsByLabel(meetingStore.meetings);
 
   const renderMeetingsList = (meetingGroups: IMeetingGroup[]) => (
     <div className="grid grid-cols-1">
@@ -106,9 +117,8 @@ const MeetingCardList = observer(() => {
     <ContentWrapper>
       <div className="space-y-12">
         <div>
-          {/* <h2 className="text-xl font-bold text-white mb-4">Meetings</h2> */}
-          {sampleMeetings?.length > 0 ? (
-            renderMeetingsList(sampleMeetings)
+          {groupedMeetings?.length > 0 ? (
+            renderMeetingsList(groupedMeetings)
           ) : (
             <p className="text-gray-400">No meetings.</p>
           )}
