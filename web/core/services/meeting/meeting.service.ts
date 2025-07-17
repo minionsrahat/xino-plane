@@ -9,7 +9,8 @@ export class MeetingService extends APIService {
 
 
   async createMeeting(workspaceSlug: string, data: Partial<IMeeting>): Promise<IMeeting> {
-    const payload = serializeMeetingForApi(data);
+    const payload = serializeMeetingForApi(data)
+
     return this.post(`/api/workspaces/${workspaceSlug}/meetings/`, payload)
       .then((res) => res?.data)
       .catch((error) => {
@@ -57,34 +58,69 @@ export class MeetingService extends APIService {
 }
 
 // Utility function to convert full objects to ID-only format
-const serializeMeetingForApi = (data: Partial<IMeeting>) => ({
+export const serializeMeetingForApi = (data: Partial<IMeeting>) => ({
   ...data,
-  chairperson: data.chairperson?.id || null,
-  host: data.host?.id || null,
-  participants: data.participants?.map(p => p.id) || [],
-  attachments: data.attachments?.map(a => ({
-    id: a.id,
-    name: a.name,
-    url: a.url,
-    type: a.type
-  })) || [],
-  agendas: data.agendas?.map(agenda => ({
-    id: agenda.id,
-    title: agenda.title,
-    duration_minutes: agenda.duration_minutes,
-    note: agenda.note,
-    assignees: agenda.assignees?.map(a => a.id),
-    issues: agenda.issues?.map(issue => ({
-      id: issue.id,
-      name: issue.name,
-      description: issue.description,
-      assignees: issue.assignees?.map(a => a.id),
-      target_date: issue.target_date,
-      priority: issue.priority
-    })) || []
-  })) || []
+  chairperson: data.chairperson?.id ?? data.chairperson ?? null,
+  host: data.host?.id ?? data.host ?? null,
+  participants: Array.isArray(data.participants)
+    ? data.participants.map(p => p?.id ?? p).filter(Boolean)
+    : [],
+
+  attachments: Array.isArray(data.attachments)
+    ? data.attachments.map(a => ({
+      id: a?.id ?? undefined,
+      name: a?.name ?? "",
+      url: a?.url ?? "",
+      type: a?.type ?? "",
+    }))
+    : [],
+
+  agendas: Array.isArray(data.agendas)
+    ? data.agendas.map(agenda => ({
+      id: agenda?.id ?? undefined,
+      title: agenda?.title ?? "",
+      duration_minutes: agenda?.duration_minutes ?? 0,
+      // note: agenda?.note ?? "",
+      assignees: Array.isArray(agenda.assignees)
+        ? agenda.assignees.map(a => a?.id ?? a).filter(Boolean)
+        : [],
+      issues: Array.isArray(agenda.issues)
+        ? agenda.issues.map(issue => ({
+          id: issue?.id ?? undefined,
+          name: issue?.name ?? "",
+          description: issue?.description ?? "",
+          assignees: Array.isArray(issue.assignees)
+            ? issue.assignees.map(a => a?.id ?? a).filter(Boolean)
+            : [],
+          target_date: issue?.target_date ?? null,
+          priority: issue?.priority ?? "",
+        }))
+        : [],
+    }))
+    : [],
 });
 
+
+// Utility function to pass full objects format
+// const serializeMeetingForApi = (data: Partial<IMeeting>) => ({
+//   ...data,
+//   chairperson: data.chairperson ?? null,
+//   host: data.host ?? null,
+//   participants: Array.isArray(data.participants) ? data.participants : [],
+//   attachments: Array.isArray(data.attachments) ? data.attachments : [],
+//   agendas: Array.isArray(data.agendas)
+//     ? data.agendas.map((agenda) => ({
+//       ...agenda,
+//       assignees: Array.isArray(agenda.assignees) ? agenda.assignees : [],
+//       issues: Array.isArray(agenda.issues)
+//         ? agenda.issues.map((issue) => ({
+//           ...issue,
+//           assignees: Array.isArray(issue.assignees) ? issue.assignees : [],
+//         }))
+//         : [],
+//     }))
+//     : [],
+// });
 
 
 // api/ workspaces/<str:slug>/meetings/ [name='workspace-meetings'] 

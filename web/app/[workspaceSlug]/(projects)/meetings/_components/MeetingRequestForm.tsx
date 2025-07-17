@@ -9,9 +9,15 @@ import { useTranslation } from "@plane/i18n";
 import { IMeeting, IUser } from "@plane/types/src/meeting";
 import { useMember } from "@/hooks/store";
 import useSWR from "swr";
+import { serializeMeetingForApi } from "@/services/meeting";
 
 export const users: IUser[] = [
-  { id: "9a1aeba2-8eee-4939-a7f9-833d49970f58", name: "Rahim Uddin" },
+  {
+    id: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
+    first_name: "Alice",
+    last_name: "Johnson",
+    display_name: "Alice Johnson",
+  },
   // { id: "9a1aeba2-8eee-4939-a7f9-833d49970f58", name: "Salam Hossain" },
 ];
 
@@ -71,22 +77,24 @@ export default function MeetingForm() {
     const payload: any = {
       subject,
       description,
-      chairperson,
+      chairperson: users[0],
       start_time,
       end_time,
-      host,
-      participants,
+      host: users[0],
+      participants: [users[0]],
       agendas: agendaItems.map((item) => ({
         title: item.title,
         duration_minutes: parseInt(item.duration || "0"),
-        assignees: [item.assignee],
+        assignees: [users[0]],
       })),
       attachments,
     };
 
-    // console.log("payload", payload);
     // setFormSubmitState("submitting");
 
+    // const customData = serializeMeetingForApi(payload);
+    // console.log("payload", customData);
+    // return;
     addMeeting(workspaceSlug?.toString()!, payload)
       .then(() => {
         setToast({
@@ -146,7 +154,7 @@ export default function MeetingForm() {
           >
             {users.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.name}
+                {u?.display_name}
               </option>
             ))}
           </select>
@@ -160,8 +168,8 @@ export default function MeetingForm() {
             className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
           >
             {users.map((u) => (
-              <option key={u.name} value={u.id}>
-                {u.name}
+              <option key={u?.id} value={u.id}>
+                {u?.display_name}
               </option>
             ))}
           </select>
@@ -207,7 +215,7 @@ export default function MeetingForm() {
           <div className="flex flex-wrap gap-2 mb-2">
             {participants.map((p) => (
               <span key={p} className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
-                {users.find((u) => u.id === p)?.name || p}
+                {users.find((u) => u.id === p)?.display_name || p}
                 <button
                   type="button"
                   onClick={() => setParticipants(participants.filter((id) => id !== p))}
@@ -230,10 +238,10 @@ export default function MeetingForm() {
           >
             <option value="">Select participant</option>
             {users
-              .filter((u) => !participants.includes(u.id))
+              .filter((u) => u?.id && !participants.includes(u?.id))
               .map((u) => (
-                <option key={u.name} value={u.id}>
-                  {u.name}
+                <option key={u?.id} value={u.id}>
+                  {u?.display_name}
                 </option>
               ))}
           </select>
@@ -263,8 +271,8 @@ export default function MeetingForm() {
                 >
                   <option value="">Select owner</option>
                   {users.map((u) => (
-                    <option key={u.name} value={u.id}>
-                      {u.name}
+                    <option key={u?.id} value={u.id}>
+                      {u.display_name}
                     </option>
                   ))}
                 </select>

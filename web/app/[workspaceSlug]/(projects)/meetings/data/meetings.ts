@@ -54,7 +54,7 @@ export const sampleMeetings: IMeetingGroup[] = [
                 priority: "high",
               },
             ],
-            note: "Prepare presentation before the meeting.",
+            // note: "Prepare presentation before the meeting.",
           },
         ],
         attachments: [
@@ -166,7 +166,7 @@ export const sampleMeetings: IMeetingGroup[] = [
             title: "Team Feedback",
             duration_minutes: 45,
             assignees: [],
-            note: "General discussion around last sprint.",
+            // note: "General discussion around last sprint.",
           },
         ],
         attachments: [],
@@ -293,7 +293,7 @@ export interface IAgenda {
   duration_minutes: number;
   assignees: IUser[];
   issues?: IssueItem[];
-  note?: string;
+  // note?: string;
 }
 
 export interface IMeeting {
