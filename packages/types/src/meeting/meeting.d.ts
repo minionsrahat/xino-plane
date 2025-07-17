@@ -31,7 +31,7 @@ export interface IAgenda {
   duration_minutes: number;
   assignees: IUser[];
   issues?: IssueItem[];
-  note?: string;
+  // note?: string;
 }
 
 export interface IMeeting {

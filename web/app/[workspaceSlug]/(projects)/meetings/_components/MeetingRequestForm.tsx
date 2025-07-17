@@ -14,30 +14,28 @@ import { serializeMeetingForApi } from "@/services/meeting";
 export const users: IUser[] = [
   {
     id: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
-    first_name: "Alice",
-    last_name: "Johnson",
-    display_name: "Alice Johnson",
+    first_name: "Rahat Uddin",
+    last_name: "Azad",
+    display_name: "rahatuddin786",
   },
-  // { id: "9a1aeba2-8eee-4939-a7f9-833d49970f58", name: "Salam Hossain" },
 ];
 
 export default function MeetingForm() {
   const { workspaceSlug } = useParams();
   const { t } = useTranslation();
   const { addMeeting } = useMeeting();
-  const selfUser = users[0];
   const router = useRouter();
   const [formSubmitState, setFormSubmitState] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
-  const [chairperson, setChairperson] = useState(selfUser.id);
+  const [chairperson, setChairperson] = useState<IUser | {}>({});
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [host, setHost] = useState(selfUser.id);
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [host, setHost] = useState<IUser | {}>({});
+  const [participants, setParticipants] = useState<IUser[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [agendaItems, setAgendaItems] = useState([{ title: "Project Kickoff", assignee: selfUser.id, duration: "30" }]);
+  const [agendaItems, setAgendaItems] = useState([{ title: "", assignees: [] as IUser[], duration: "" }]);
 
   const {
     workspace: { fetchWorkspaceMembers, fetchWorkspaceMemberInvitations },
@@ -51,13 +49,13 @@ export default function MeetingForm() {
   //     : null
   // );
 
-  const addAgenda = () => setAgendaItems([...agendaItems, { title: "", assignee: "", duration: "" }]);
+  const addAgenda = () => setAgendaItems([...agendaItems, { title: "", assignees: [], duration: "" }]);
 
   const removeAgenda = (index: number) => setAgendaItems(agendaItems.filter((_, i) => i !== index));
 
-  const updateAgendaItem = (index: number, field: string, value: string) => {
+  const updateAgendaItem = (index: number, field: string, value: any) => {
     const updated = [...agendaItems];
-    updated[index][field as keyof (typeof updated)[0]] = value;
+    (updated[index] as any)[field] = value;
     setAgendaItems(updated);
   };
 
@@ -77,24 +75,20 @@ export default function MeetingForm() {
     const payload: any = {
       subject,
       description,
-      chairperson: users[0],
       start_time,
       end_time,
-      host: users[0],
-      participants: [users[0]],
+      chairperson: (chairperson as IUser)?.id ? chairperson : null,
+      host: (host as IUser)?.id ? host : null,
+      participants: participants,
       agendas: agendaItems.map((item) => ({
         title: item.title,
-        duration_minutes: parseInt(item.duration || "0"),
-        assignees: [users[0]],
+        duration_minutes: Number.isNaN(Number(item.duration)) ? 0 : parseInt(item.duration),
+        assignees: item?.assignees,
       })),
       attachments,
     };
 
-    // setFormSubmitState("submitting");
-
-    // const customData = serializeMeetingForApi(payload);
-    // console.log("payload", customData);
-    // return;
+    setFormSubmitState("submitting");
     addMeeting(workspaceSlug?.toString()!, payload)
       .then(() => {
         setToast({
@@ -148,12 +142,16 @@ export default function MeetingForm() {
           <label className="block mb-1 font-medium">Chairperson *</label>
           <select
             required
-            value={chairperson}
-            onChange={(e) => setChairperson(e.target.value)}
+            value={(chairperson as IUser)?.id || ""}
+            onChange={(e) => {
+              const selectedUser = users?.find((u) => u?.id === e?.target?.value);
+              setChairperson(selectedUser || {});
+            }}
             className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
           >
+            <option value="">Select Chairperson</option>
             {users.map((u) => (
-              <option key={u.id} value={u.id}>
+              <option key={u?.id} value={u?.id}>
                 {u?.display_name}
               </option>
             ))}
@@ -163,10 +161,14 @@ export default function MeetingForm() {
           <label className="block mb-1 font-medium">Host *</label>
           <select
             required
-            value={host}
-            onChange={(e) => setHost(e.target.value)}
+            value={(host as IUser)?.id || ""}
+            onChange={(e) => {
+              const selectedUser = users?.find((u) => u?.id === e.target.value);
+              setHost(selectedUser || {});
+            }}
             className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
           >
+            <option value="">Select Host</option>
             {users.map((u) => (
               <option key={u?.id} value={u.id}>
                 {u?.display_name}
@@ -214,11 +216,11 @@ export default function MeetingForm() {
         <div className="bg-gray-800 border border-gray-600 p-2 rounded-lg">
           <div className="flex flex-wrap gap-2 mb-2">
             {participants.map((p) => (
-              <span key={p} className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
-                {users.find((u) => u.id === p)?.display_name || p}
+              <span key={p.id} className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                {p.display_name}
                 <button
                   type="button"
-                  onClick={() => setParticipants(participants.filter((id) => id !== p))}
+                  onClick={() => setParticipants(participants.filter((user) => user.id !== p.id))}
                   className="text-red-400 hover:text-red-200"
                 >
                   ×
@@ -227,21 +229,23 @@ export default function MeetingForm() {
             ))}
           </div>
           <select
+            key={participants.map((p) => p.id).join(",")}
             onChange={(e) => {
-              const selected = e.target.value;
-              if (selected && !participants.includes(selected)) {
-                setParticipants([...participants, selected]);
+              const selectedId = e.target.value;
+              const selectedUser = users.find((u) => u.id === selectedId);
+              if (selectedUser && !participants.some((u) => u.id === selectedUser.id)) {
+                setParticipants([...participants, selectedUser]);
               }
-              e.target.selectedIndex = 0;
+              // e.target.selectedIndex = 0;
             }}
             className="w-full bg-gray-700 border border-gray-600 px-4 py-2 rounded-md"
           >
             <option value="">Select participant</option>
             {users
-              .filter((u) => u?.id && !participants.includes(u?.id))
+              .filter((u) => !participants.some((p) => p.id === u.id))
               .map((u) => (
-                <option key={u?.id} value={u.id}>
-                  {u?.display_name}
+                <option key={u.id} value={u.id}>
+                  {u.display_name}
                 </option>
               ))}
           </select>
@@ -262,22 +266,55 @@ export default function MeetingForm() {
                   className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
                 />
               </div>
-              <div className="col-span-12 md:col-span-3">
-                <label className="block mb-1 font-medium">Assignee</label>
-                <select
-                  value={item.assignee}
-                  onChange={(e) => updateAgendaItem(idx, "assignee", e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
-                >
-                  <option value="">Select owner</option>
-                  {users.map((u) => (
-                    <option key={u?.id} value={u.id}>
-                      {u.display_name}
-                    </option>
-                  ))}
-                </select>
+              <div className="col-span-12 md:col-span-4">
+                <label className="block mb-1 font-medium">Assignees</label>
+                <div className="bg-gray-800 border border-gray-600 p-2 rounded-lg">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {item.assignees.map((assignee: IUser) => (
+                      <span
+                        key={assignee.id}
+                        className="bg-gray-700 text-sm px-3 py-1 rounded-full flex items-center gap-1"
+                      >
+                        {assignee.display_name}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedAssignees = item.assignees.filter((a) => a.id !== assignee.id);
+                            updateAgendaItem(idx, "assignees", updatedAssignees);
+                          }}
+                          className="text-red-400 hover:text-red-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <select
+                    key={item.assignees.map((p) => p.id).join(",")}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedUser = users.find((u) => u.id === selectedId);
+                      if (selectedUser && !item.assignees.some((a) => a.id === selectedUser.id)) {
+                        const updatedAssignees = [...item.assignees, selectedUser];
+                        updateAgendaItem(idx, "assignees", updatedAssignees);
+                      }
+                      // e.target.selectedIndex = 0;
+                    }}
+                    className="w-full bg-gray-700 border border-gray-600 px-4 py-2 rounded-md"
+                  >
+                    <option value="">Select assignee</option>
+                    {users
+                      .filter((u) => !item.assignees.some((a) => a.id === u.id))
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.display_name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               </div>
-              <div className="col-span-12 md:col-span-3">
+
+              <div className="col-span-12 md:col-span-2">
                 <label className="block mb-1 font-medium">Duration (min)</label>
                 <input
                   type="number"
