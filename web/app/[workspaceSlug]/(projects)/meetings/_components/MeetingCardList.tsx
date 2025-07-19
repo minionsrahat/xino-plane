@@ -5,9 +5,9 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
-import { PencilIcon, ViewIcon } from "lucide-react";
+import { ArrowRightToLineIcon, PencilIcon, ViewIcon } from "lucide-react";
 import { IMeeting } from "@plane/types";
-import { ContentWrapper } from "@plane/ui";
+import { Button, ContentWrapper } from "@plane/ui";
 import { LogoSpinner } from "@/components/common";
 import { useMeeting } from "@/hooks/store/use-meeting";
 import { IMeetingGroup, sampleMeetings } from "../data/meetings";
@@ -38,6 +38,7 @@ const MeetingCardList = observer(() => {
   const { workspaceSlug, projectId } = useParams();
   const meetingStore = useMeeting();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAllMeetingsLabel, setShowAllMeetingsLabel] = useState<string | null>(null);
 
   const {
     project: { projectMemberIds, getProjectMemberDetails },
@@ -60,70 +61,119 @@ const MeetingCardList = observer(() => {
 
   const groupedMeetings = groupMeetingsByLabel(meetingStore.meetings);
 
+  const handleVIewAllMeetings = (meetingLabel: string) => {
+    setShowAllMeetingsLabel(meetingLabel);
+  };
+
   const renderMeetingsList = (meetingGroups: IMeetingGroup[]) => (
     <div className="grid grid-cols-1">
-      {meetingGroups.map((meetingGroup) => (
-        <div key={meetingGroup?.label} className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">
-            {meetingGroup?.label
-              ?.toLowerCase()
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")}{" "}
-            Meetings
-          </h2>
-          <div className="bg-gray-800 text-white rounded-lg shadow divide-y divide-gray-500">
-            {/* Header Row */}
-            <div className="grid grid-cols-7 gap-5 text-sm font-bold  tracking-wide text-gray-300 bg-gray-700 px-4 py-3 rounded-t-lg">
-              <div>Date 📅</div>
-              <div>Start Time ⏰</div>
-              <div>Subject 📝</div>
-              <div>Description 🧾</div>
-              <div>Chairperson 👥</div>
-              <div>Host 👥</div>
-              {/* <div>Participants 👥</div> */}
-              <div className="text-center">Actions ⚙️</div>
+      {meetingGroups.map((meetingGroup) => {
+        let meetingsData;
+        if (showAllMeetingsLabel) {
+          meetingsData = showAllMeetingsLabel === meetingGroup?.label ? meetingGroup : null;
+        } else {
+          meetingsData = meetingGroup;
+        }
+        if (!meetingsData?.label) return;
+        return (
+          <div key={meetingsData?.label} className="mb-8">
+            <div className="flex justify-between items-center my-2">
+              <h2 className="text-xl font-semibold mb-4">
+                {meetingsData?.label
+                  ?.toLowerCase()
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")}{" "}
+                Meetings
+              </h2>
+              {meetingsData?.meetings?.length > 5 && showAllMeetingsLabel && (
+                <Button className="btn btn-secondary text-xs" onClick={() => handleVIewAllMeetings("")}>
+                  <span>Back to meetings</span>
+                </Button>
+              )}
             </div>
-            {/* Meeting Rows */}
-            {meetingGroup?.meetings?.map((meeting) => (
-              <div key={meeting?.id} className="grid grid-cols-7 items-center justify-center gap-5 px-4 py-3">
-                <div className="text-sm">{formatDateTime(meeting?.start_time, "date")}</div>
-                <div className="text-sm ">{formatDateTime(meeting?.start_time, "time")}</div>
-                <div className="text-sm">{meeting?.subject}</div>
-                <div className="text-sm">{meeting?.description?.slice(0, 20)}...</div>
-                <div className="text-sm">{meeting?.chairperson?.display_name}</div>
-                <div className="text-sm">{meeting?.host?.display_name}</div>
-                {/* <div className="text-sm">{meeting?.participants?.map((p) => p?.display_name).join(", ")}</div> */}
-                <div className="flex gap-4 justify-center">
-                  {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
-                  <Link
-                    href={`/${workspaceSlug?.toString()}/meetings/update-meeting/${meeting?.id}`}
-                    className=" p-1 rounded hover:bg-gray-700"
-                  >
-                    <PencilIcon size={18} />
-                  </Link>
-                  {/* // )} */}
-                  <Link
-                    href={`/${workspaceSlug?.toString()}/meetings/meeting-details/${meeting?.id}`}
-                    className=" p-1 rounded hover:bg-gray-700"
-                  >
-                    <ViewIcon size={18} />
-                  </Link>
-                  {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
-                  {isMeetingActive(meeting?.start_time, meeting?.end_time) && (
-                    <Link
-                      href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
-                      className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
-                    >
-                      Join
-                    </Link>
-                  )}
-                </div>
+            <div className="bg-gray-800 text-white rounded-lg shadow divide-y divide-gray-500">
+              {/* Header Row */}
+              <div className="grid grid-cols-7 gap-5 text-sm font-bold  tracking-wide text-gray-300 bg-gray-700 px-4 py-3 rounded-t-lg">
+                <div>Date 📅</div>
+                <div>Start Time ⏰</div>
+                <div>Subject 📝</div>
+                <div>Description 🧾</div>
+                <div>Chairperson 👥</div>
+                <div>Host 👥</div>
+                {/* <div>Participants 👥</div> */}
+                <div className="text-center">Actions ⚙️</div>
               </div>
-            ))}
+              {/* Meeting Rows */}
+              {meetingGroup?.meetings?.slice(0, 5)?.map((meeting) => {
+                const isLive = isMeetingActive(meeting?.start_time, meeting?.end_time);
+                return (
+                  <div key={meeting?.id} className="grid grid-cols-7 items-center justify-center gap-5 px-4 py-3">
+                    <div className="text-sm">{formatDateTime(meeting?.start_time, "date")}</div>
+                    <div className="text-sm ">{formatDateTime(meeting?.start_time, "time")}</div>
+                    <div className="text-sm">{meeting?.subject}</div>
+                    <div className="text-sm">{meeting?.description?.slice(0, 20)}...</div>
+                    <div className="text-sm">{meeting?.chairperson?.display_name}</div>
+                    <div className="text-sm">{meeting?.host?.display_name}</div>
+                    {/* <div className="text-sm">{meeting?.participants?.map((p) => p?.display_name).join(", ")}</div> */}
+                    <div className="flex gap-4 justify-center p-1">
+                      {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
+                      {/* Meeting Minute */}
+                      {isLive && (
+                        <div className="relative group">
+                          <Link
+                            href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
+                            className="rounded hover:bg-gray-700"
+                          >
+                            <ArrowRightToLineIcon size={18} />
+                          </Link>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-5">
+                            Meeting minutes
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Edit Meeting */}
+                      {!(meetingGroup?.label === "Completed") && (
+                        <div className="relative group">
+                          <Link
+                            href={`/${workspaceSlug?.toString()}/meetings/update-meeting/${meeting?.id}`}
+                            className=" rounded hover:bg-gray-700"
+                          >
+                            <PencilIcon size={18} />
+                          </Link>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                            Edit meeting
+                          </div>
+                        </div>
+                      )}
+                      {/* View Details */}
+                      <div className="relative group">
+                        <Link
+                          href={`/${workspaceSlug?.toString()}/meetings/meeting-details/${meeting?.id}`}
+                          className="rounded hover:bg-gray-700"
+                        >
+                          <ViewIcon size={18} />
+                        </Link>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                          View details
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {meetingsData?.meetings?.length > 5 && !showAllMeetingsLabel && (
+              <div className="flex w-full justify-end my-2">
+                <Button className="btn btn-primary text-xs" onClick={() => handleVIewAllMeetings(meetingGroup?.label)}>
+                  <span>View all</span>
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -160,10 +210,11 @@ export const formatTime = (time: string) => {
 };
 
 export function formatDateTime(dateString: string, type: "date" | "time"): string {
-  const date = new Date(dateString);
+  // Strip 'Z' to treat as local time if needed
+  const localDate = new Date(dateString.replace(/Z$/, ""));
 
   if (type === "date") {
-    return date.toLocaleDateString("en-GB", {
+    return localDate.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -171,20 +222,27 @@ export function formatDateTime(dateString: string, type: "date" | "time"): strin
   }
 
   if (type === "time") {
-    return date.toLocaleTimeString("en-US", {
+    return localDate.toLocaleTimeString("en-US", {
       hour: "numeric",
+      minute: "2-digit",
       hour12: true,
-    }); // Example: "9 AM"
+    }); // Example: "9:00 AM"
   }
 
   return "";
 }
 
-export const isMeetingActive = (start_time: string, end_time: string) => {
+export const isMeetingActive = (start_time: string, end_time: string): boolean => {
   const now = new Date();
-  const start = new Date(start_time);
-  const end = new Date(end_time);
-
+  const parseLocal = (timeStr: string) => {
+    // Remove 'Z' and treat as local
+    return new Date(timeStr.replace(/Z$/, ""));
+  };
+  const start = parseLocal(start_time);
+  const end = parseLocal(end_time);
+  // console.log("Now     :", now.toString());
+  // console.log("Start   :", start.toString());
+  // console.log("End     :", end.toString())
   return now >= start && now <= end;
 };
 
