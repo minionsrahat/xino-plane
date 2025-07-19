@@ -76,7 +76,7 @@ const MeetingUpdateForm = observer(() => {
           <input
             type="text"
             readOnly
-            value={meetingData?.participants?.map((p) => p?.user?.display_name).join(", ") || ""}
+            value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
             className="w-full bg-gray-800"
           />
         </div>
@@ -98,7 +98,7 @@ const MeetingUpdateForm = observer(() => {
                   <input
                     type="text"
                     readOnly
-                    value={item?.assignees?.map((p) => p?.user?.display_name).join(", ") || ""}
+                    value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
                     className="w-full bg-gray-800"
                   />
                 </div>

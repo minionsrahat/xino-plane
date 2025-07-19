@@ -163,7 +163,7 @@ const MeetingMinutesForm = observer(() => {
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Participants</label>
           <input
             type="text"
-            value={meetingData?.participants?.map((p) => p?.user?.display_name)?.join(", ") ?? ""}
+            value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
             readOnly
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
           />
