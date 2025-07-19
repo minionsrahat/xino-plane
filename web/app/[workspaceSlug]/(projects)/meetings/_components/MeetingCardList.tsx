@@ -76,7 +76,7 @@ const MeetingCardList = observer(() => {
         }
         if (!meetingsData?.label) return;
         return (
-          <div key={meetingsData?.label} className="mb-8">
+          <div key={meetingsData?.label} className="mb-6">
             <div className="flex justify-between items-center my-2">
               <h2 className="text-xl font-semibold mb-4">
                 {meetingsData?.label
@@ -165,7 +165,7 @@ const MeetingCardList = observer(() => {
               })}
             </div>
             {meetingsData?.meetings?.length > 5 && !showAllMeetingsLabel && (
-              <div className="flex w-full justify-end my-2">
+              <div className="flex w-full justify-end mt-2">
                 <Button className="btn btn-primary text-xs" onClick={() => handleVIewAllMeetings(meetingGroup?.label)}>
                   <span>View all</span>
                 </Button>

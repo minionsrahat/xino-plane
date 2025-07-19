@@ -86,6 +86,7 @@ export default function MeetingForm() {
         assignees: item?.assignees,
       })),
       attachments,
+      status: formSubmitState === "draft" ? "draft" : "submitted",
     };
 
     setFormSubmitState("submitting");

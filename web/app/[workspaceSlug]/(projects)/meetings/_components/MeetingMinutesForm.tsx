@@ -28,6 +28,10 @@ const MeetingMinutesForm = observer(() => {
   const { meetingId, workspaceSlug } = useParams();
   const meetingData = meetingId ? meetings?.find((m) => m.id === meetingId) : undefined;
 
+  if (!meetingData?.id) {
+    router.push(`/${workspaceSlug}/meetings`);
+  }
+
   const [agendaItems, setAgendaItems] = useState<IAgenda[]>([]);
   useEffect(() => {
     if (meetingData?.agendas) {
@@ -97,12 +101,34 @@ const MeetingMinutesForm = observer(() => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalData = {
+
+    const payload = {
       ...meetingData,
       agendas: agendaItems,
       summary,
     };
-    console.log("Final Meeting Minutes Data:", finalData);
+    console.log("Final Meeting Minutes Data:", payload);
+
+    if (meetingData?.id) {
+      updateMeeting(workspaceSlug?.toString()!, meetingData?.id, payload)
+        .then(() => {
+          setToast({
+            type: TOAST_TYPE.SUCCESS,
+            title: t("success"),
+            message: t("meeting_created_successfully"),
+          });
+          // setFormSubmitState("");
+          router.push(`/${workspaceSlug}/meetings`);
+        })
+        .catch(() => {
+          setToast({
+            type: TOAST_TYPE.ERROR,
+            title: t("error"),
+            message: t("something_went_wrong"),
+          });
+          // setFormSubmitState("");
+        });
+    }
   };
 
   return (
@@ -284,9 +310,9 @@ const MeetingMinutesForm = observer(() => {
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <button type="button" className="px-4 py-2 border border-gray-600 text-gray-200 rounded hover:bg-gray-700">
+        {/* <button type="button" className="px-4 py-2 border border-gray-600 text-gray-200 rounded hover:bg-gray-700">
           Save as Draft
-        </button>
+        </button> */}
         <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
           Submit
         </button>
