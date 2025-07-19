@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, ViewIcon } from "lucide-react";
 import { IMeeting } from "@plane/types";
 import { ContentWrapper } from "@plane/ui";
 import { LogoSpinner } from "@/components/common";
@@ -96,6 +96,12 @@ const MeetingCardList = observer(() => {
                       <PencilIcon size={18} />
                     </Link>
                   )}
+                  <Link
+                    href={`/${workspaceSlug?.toString()}/meetings/meeting-details/${meeting?.id}`}
+                    className=" p-1 rounded hover:bg-gray-700"
+                  >
+                    <ViewIcon size={18} />
+                  </Link>
                   {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && (
                     <Link
                       href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
