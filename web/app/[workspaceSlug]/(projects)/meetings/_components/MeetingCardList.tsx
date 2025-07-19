@@ -64,7 +64,14 @@ const MeetingCardList = observer(() => {
     <div className="grid grid-cols-1">
       {meetingGroups.map((meetingGroup) => (
         <div key={meetingGroup?.label} className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">{meetingGroup?.label} Meetings</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            {meetingGroup?.label
+              ?.toLowerCase()
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")}{" "}
+            Meetings
+          </h2>
           <div className="bg-gray-800 text-white rounded-lg shadow divide-y divide-gray-500">
             {/* Header Row */}
             <div className="grid grid-cols-7 gap-5 text-sm font-bold  tracking-wide text-gray-300 bg-gray-700 px-4 py-3 rounded-t-lg">
@@ -88,21 +95,22 @@ const MeetingCardList = observer(() => {
                 <div className="text-sm">{meeting?.host?.display_name}</div>
                 {/* <div className="text-sm">{meeting?.participants?.map((p) => p?.display_name).join(", ")}</div> */}
                 <div className="flex gap-4 justify-center">
-                  {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && (
-                    <Link
-                      href={`/${workspaceSlug?.toString()}/meetings/create-meeting`}
-                      className=" p-1 rounded hover:bg-gray-700"
-                    >
-                      <PencilIcon size={18} />
-                    </Link>
-                  )}
+                  {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
+                  <Link
+                    href={`/${workspaceSlug?.toString()}/meetings/update-meeting/${meeting?.id}`}
+                    className=" p-1 rounded hover:bg-gray-700"
+                  >
+                    <PencilIcon size={18} />
+                  </Link>
+                  {/* // )} */}
                   <Link
                     href={`/${workspaceSlug?.toString()}/meetings/meeting-details/${meeting?.id}`}
                     className=" p-1 rounded hover:bg-gray-700"
                   >
                     <ViewIcon size={18} />
                   </Link>
-                  {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && (
+                  {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
+                  {isMeetingActive(meeting?.start_time, meeting?.end_time) && (
                     <Link
                       href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
                       className="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
@@ -171,3 +179,18 @@ export function formatDateTime(dateString: string, type: "date" | "time"): strin
 
   return "";
 }
+
+export const isMeetingActive = (start_time: string, end_time: string) => {
+  const now = new Date();
+  const start = new Date(start_time);
+  const end = new Date(end_time);
+
+  return now >= start && now <= end;
+};
+
+// const active = isMeetingActive("2025-07-18T13:45:00Z", "2025-07-18T16:45:00Z");
+// if (active) {
+//   console.log("Meeting is active now");
+// } else {
+//   console.log("Meeting is not active");
+// }

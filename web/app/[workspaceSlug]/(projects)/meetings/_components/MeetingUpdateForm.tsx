@@ -12,13 +12,15 @@ import useSWR from "swr";
 import { serializeMeetingForApi } from "@/services/meeting";
 import { observer } from "mobx-react";
 
-const MeetingViewForm = observer(() => {
+const MeetingUpdateForm = observer(() => {
   const { workspaceSlug, meetingId } = useParams();
   const { meetings } = useMeeting();
   const { t } = useTranslation();
   const router = useRouter();
 
   const meetingData = meetingId ? meetings?.find((m) => m.id === meetingId) : undefined;
+
+  // console.log("data", meetingData);
 
   if (!meetingData?.id) {
     router.push(`/${workspaceSlug}/meetings`);
@@ -138,4 +140,4 @@ const MeetingViewForm = observer(() => {
   );
 });
 
-export default MeetingViewForm;
+export default MeetingUpdateForm;
