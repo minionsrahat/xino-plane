@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FilePlus, Trash } from "lucide-react";
+import { useState } from "react";
 
 export default function MeetingForm() {
-  const users = ['Mamun Hasan', 'Sumaiya', 'Salam Hossain', 'Steve Jobs'];
+  const users = ["Mamun Hasan", "Sumaiya", "Salam Hossain", "Steve Jobs"];
 
   const [agendaItems, setAgendaItems] = useState([
-    { agenda: 'Project Kickoff', owner: 'Mamun Hasan', duration: '30 min' },
+    { agenda: "Project Kickoff", owner: "Mamun Hasan", duration: "30 min" },
   ]);
 
   const addAgenda = () => {
-    setAgendaItems([...agendaItems, { agenda: '', owner: '', duration: '' }]);
+    setAgendaItems([...agendaItems, { agenda: "", owner: "", duration: "" }]);
   };
 
   const removeAgenda = (index: number) => {
@@ -25,11 +25,7 @@ export default function MeetingForm() {
         <label className="label">
           <span className="label-text font-semibold">Meeting Subject</span>
         </label>
-        <input
-          type="text"
-          placeholder="Enter meeting subject"
-          className="input input-bordered w-full"
-        />
+        <input type="text" placeholder="Enter meeting subject" className="input input-bordered w-full" />
       </div>
 
       {/* Body */}
@@ -58,8 +54,12 @@ export default function MeetingForm() {
             <span className="label-text font-semibold">Chairperson</span>
           </label>
           <select className="select select-bordered w-full">
-            <option disabled selected>Select chairperson</option>
-            {users.map((u, i) => <option key={i}>{u}</option>)}
+            <option disabled selected>
+              Select chairperson
+            </option>
+            {users.map((u, i) => (
+              <option key={i}>{u}</option>
+            ))}
           </select>
         </div>
 
@@ -68,8 +68,12 @@ export default function MeetingForm() {
             <span className="label-text font-semibold">Host</span>
           </label>
           <select className="select select-bordered w-full">
-            <option disabled selected>Select host</option>
-            {users.map((u, i) => <option key={i}>{u}</option>)}
+            <option disabled selected>
+              Select host
+            </option>
+            {users.map((u, i) => (
+              <option key={i}>{u}</option>
+            ))}
           </select>
         </div>
 
@@ -78,81 +82,78 @@ export default function MeetingForm() {
             <span className="label-text font-semibold">Participants</span>
           </label>
           <select className="select select-bordered w-full" multiple>
-            {users.map((u, i) => <option key={i}>{u}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {/* Agenda Section */}
-     <div className="pt-2">
-  <div className="flex justify-between items-center mb-2">
-    <h3 className="text-lg font-semibold">Meeting Agenda</h3>
-    <button
-      type="button"
-      className="btn btn-outline btn-sm flex items-center gap-1"
-      onClick={addAgenda}
-    >
-      <FiPlus /> Add Agenda
-    </button>
-  </div>
-
-  <div className="space-y-4">
-    {agendaItems.map((item, idx) => (
-      <div key={idx} className="grid grid-cols-12 gap-4 items-end">
-        {/* Agenda input - spans 5 columns */}
-        <div className="col-span-12 md:col-span-5">
-          <label className="label">
-            <span className="label-text">Agenda</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Agenda item"
-            defaultValue={item.agenda}
-            className="input input-bordered w-full"
-          />
-        </div>
-
-        {/* Owner - spans 3 columns */}
-        <div className="col-span-12 md:col-span-3">
-          <label className="label">
-            <span className="label-text">Owner</span>
-          </label>
-          <select className="select select-bordered w-full" defaultValue={item.owner}>
-            <option disabled>Select owner</option>
             {users.map((u, i) => (
               <option key={i}>{u}</option>
             ))}
           </select>
         </div>
+      </div>
 
-        {/* Duration - spans 3 columns */}
-        <div className="col-span-12 md:col-span-3">
-          <label className="label">
-            <span className="label-text">Duration</span>
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. 30 min"
-            defaultValue={item.duration}
-            className="input input-bordered w-full"
-          />
-        </div>
-
-        {/* Delete icon - spans 1 column, icon only */}
-        <div className="col-span-12 md:col-span-1 flex items-end justify-center pb-1">
-          <button
-            type="button"
-            className="btn btn-sm btn-circle btn-error btn-outline"
-            onClick={() => removeAgenda(idx)}
-          >
-            <FiTrash2 />
+      {/* Agenda Section */}
+      <div className="pt-2">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold">Meeting Agenda</h3>
+          <button type="button" className="btn btn-outline btn-sm flex items-center gap-1" onClick={addAgenda}>
+            <FilePlus /> Add Agenda
           </button>
         </div>
-      </div>
-    ))}
-  </div>
-</div>
 
+        <div className="space-y-4">
+          {agendaItems.map((item, idx) => (
+            <div key={idx} className="grid grid-cols-12 gap-4 items-end">
+              {/* Agenda input - spans 5 columns */}
+              <div className="col-span-12 md:col-span-5">
+                <label className="label">
+                  <span className="label-text">Agenda</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Agenda item"
+                  defaultValue={item.agenda}
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              {/* Owner - spans 3 columns */}
+              <div className="col-span-12 md:col-span-3">
+                <label className="label">
+                  <span className="label-text">Owner</span>
+                </label>
+                <select className="select select-bordered w-full" defaultValue={item.owner}>
+                  <option disabled>Select owner</option>
+                  {users.map((u, i) => (
+                    <option key={i}>{u}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Duration - spans 3 columns */}
+              <div className="col-span-12 md:col-span-3">
+                <label className="label">
+                  <span className="label-text">Duration</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 30 min"
+                  defaultValue={item.duration}
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              {/* Delete icon - spans 1 column, icon only */}
+              <div className="col-span-12 md:col-span-1 flex items-end justify-center pb-1">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-circle btn-error btn-outline"
+                  onClick={() => removeAgenda(idx)}
+                >
+                  <Trash />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Attachments */}
       <div>
@@ -163,8 +164,12 @@ export default function MeetingForm() {
       </div>
 
       <div className="flex flex-wrap gap-4 justify-end pt-4">
-        <button type="button" className="btn btn-outline">Save as Draft</button>
-        <button type="submit" className="btn btn-success">Submit</button>
+        <button type="button" className="btn btn-outline">
+          Save as Draft
+        </button>
+        <button type="submit" className="btn btn-success">
+          Submit
+        </button>
       </div>
     </form>
   );
