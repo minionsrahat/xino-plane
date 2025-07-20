@@ -119,7 +119,7 @@ const MeetingCardList = observer(() => {
                     <div className="flex gap-4 justify-center p-1">
                       {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
                       {/* Meeting Minute */}
-                      {isLive && (
+                      {!isLive && (
                         <div className="relative group">
                           <Link
                             href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}
@@ -184,7 +184,19 @@ const MeetingCardList = observer(() => {
           {groupedMeetings?.length > 0 ? (
             renderMeetingsList(groupedMeetings)
           ) : (
-            <p className="text-gray-400">No meetings.</p>
+            <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+              <div className="text-center">
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-balance">No meetings found</h3>
+                <div className="mt-4 flex items-center justify-center gap-x-6">
+                  <Button
+                    className="btn btn-primary text-xs"
+                    onClick={() => router.push(`/${workspaceSlug?.toString()}/`)}
+                  >
+                    Go back home
+                  </Button>
+                </div>
+              </div>
+            </main>
           )}
         </div>
       </div>

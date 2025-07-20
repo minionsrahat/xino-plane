@@ -39,7 +39,7 @@ const MeetingMinutesForm = observer(() => {
       const agendasWithDefaults = meetingData.agendas.map((agenda) => ({
         ...agenda,
         issues: agenda.issues || [],
-        isNew: false,
+        // isNew: false,
       }));
       setAgendaItems(agendasWithDefaults);
     }
@@ -365,12 +365,9 @@ const MeetingMinutesForm = observer(() => {
 
       {/* Submit Buttons */}
       <div className="flex justify-end gap-3 pt-4">
-        {/* <button type="button" className="px-4 py-2 border border-gray-600 text-gray-200 rounded hover:bg-gray-700">
-          Save as Draft
-        </button> */}
-        {/* <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+        <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
           Submit
-        </button> */}
+        </button>
       </div>
     </form>
   );

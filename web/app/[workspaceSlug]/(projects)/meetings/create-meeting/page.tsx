@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import MeetingRequestForm from '../_components/MeetingRequestForm';
+import MeetingForm from "../_components/MeetingForm";
+import MeetingRequestForm from "../_components/MeetingRequestForm";
 
 export default function CreateMeetingPage() {
-    return (
-        <>
-            <div className="mt-6">
-                <MeetingRequestForm />
-           </div>
-        </>
-    );
+  return (
+    <>
+      <div className="mt-6">
+        <MeetingForm mode="create" />
+      </div>
+    </>
+  );
 }
