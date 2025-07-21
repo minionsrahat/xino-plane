@@ -10,21 +10,26 @@ import { IMeeting, IUser } from "@plane/types/src/meeting";
 import { useMember } from "@/hooks/store";
 import useSWR from "swr";
 import { serializeMeetingForApi } from "@/services/meeting";
+import { MembersSettingsLoader } from "@/components/ui";
 
-export const users: IUser[] = [
-  {
-    id: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
-    first_name: "Rahat Uddin",
-    last_name: "Azad",
-    display_name: "rahatuddin786",
-  },
-];
+// export const users: IUser[] = [
+//   {
+//     id: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
+//     first_name: "Rahat Uddin",
+//     last_name: "Azad",
+//     display_name: "rahatuddin786",
+//   },
+// ];
 
 export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode: "create" | "update"; id?: string }) {
   const { workspaceSlug } = useParams();
   const { t } = useTranslation();
   const { meetings, addMeeting } = useMeeting();
   const router = useRouter();
+  const {
+    workspace: { fetchWorkspaceMembers, workspaceMemberIds, getSearchedWorkspaceMemberIds, getWorkspaceMemberDetails },
+  } = useMember();
+
   const [formSubmitState, setFormSubmitState] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -36,6 +41,16 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
   const [participants, setParticipants] = useState<IUser[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [agendaItems, setAgendaItems] = useState([{ title: "", assignees: [] as IUser[], duration: "" }]);
+
+  // useSWR(
+  //   workspaceSlug
+  //     ? async () => {
+  //         await fetchWorkspaceMembers(workspaceSlug.toString());
+  //       }
+  //     : null
+  // );
+
+  if (!workspaceMemberIds) return <MembersSettingsLoader />;
 
   useEffect(() => {
     if (meetingMode === "update" && meetingId) {
@@ -51,9 +66,23 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
     }
   }, [meetingMode, meetingId]);
 
-  const {
-    workspace: { fetchWorkspaceMembers, fetchWorkspaceMemberInvitations },
-  } = useMember();
+  // derived values
+  const searchedMemberIds = getSearchedWorkspaceMemberIds("");
+  const memberDetails = searchedMemberIds?.map((memberId) => getWorkspaceMemberDetails(memberId));
+
+  const users = memberDetails?.map((data) => {
+    const { avatar, avatar_url, display_name, email, id, first_name, last_name }: any = data?.member;
+    return {
+      avatar,
+      avatar_url,
+      display_name,
+      email,
+      id,
+      first_name,
+      last_name,
+    };
+  });
+  // console.log("members_data", workspaceMemberIds, searchedMemberIds, memberDetails, users);
 
   // useSWR(
   //   workspaceSlug
@@ -102,6 +131,8 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
       attachments,
       status: formSubmitState === "draft" ? "draft" : "submitted",
     };
+
+    console.log("met_data", payload, searchedMemberIds);
 
     setFormSubmitState("submitting");
     addMeeting(workspaceSlug?.toString()!, payload)
@@ -167,7 +198,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
             className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
           >
             <option value="">Select Chairperson</option>
-            {users.map((u) => (
+            {users?.map((u) => (
               <option key={u?.id} value={u?.id}>
                 {u?.display_name}
               </option>
@@ -186,7 +217,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
             className="w-full bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg"
           >
             <option value="">Select Host</option>
-            {users.map((u) => (
+            {users?.map((u) => (
               <option key={u?.id} value={u.id}>
                 {u?.display_name}
               </option>
@@ -249,7 +280,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
             key={participants.map((p) => p.id).join(",")}
             onChange={(e) => {
               const selectedId = e.target.value;
-              const selectedUser = users.find((u) => u.id === selectedId);
+              const selectedUser = users?.find((u) => u.id === selectedId);
               if (selectedUser && !participants.some((u) => u.id === selectedUser.id)) {
                 setParticipants([...participants, selectedUser]);
               }
@@ -259,7 +290,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
           >
             <option value="">Select participant</option>
             {users
-              .filter((u) => !participants.some((p) => p.id === u.id))
+              ?.filter((u) => !participants.some((p) => p.id === u.id))
               .map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.display_name}
@@ -310,7 +341,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
                     key={item.assignees.map((p) => p.id).join(",")}
                     onChange={(e) => {
                       const selectedId = e.target.value;
-                      const selectedUser = users.find((u) => u.id === selectedId);
+                      const selectedUser = users?.find((u) => u.id === selectedId);
                       if (selectedUser && !item.assignees.some((a) => a.id === selectedUser.id)) {
                         const updatedAssignees = [...item.assignees, selectedUser];
                         updateAgendaItem(idx, "assignees", updatedAssignees);
@@ -321,8 +352,8 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
                   >
                     <option value="">Select assignee</option>
                     {users
-                      .filter((u) => !item.assignees.some((a) => a.id === u.id))
-                      .map((u) => (
+                      ?.filter((u) => !item.assignees.some((a) => a.id === u.id))
+                      ?.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.display_name}
                         </option>

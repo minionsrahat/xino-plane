@@ -10,23 +10,32 @@ import { setToast, TOAST_TYPE } from "@plane/ui";
 import { useTranslation } from "@plane/i18n";
 import { IAgenda, IssueItem } from "../data/meetings";
 import { formatDateTime } from "./MeetingCardList";
+import { useMember } from "@/hooks/store";
+import useSWR from "swr";
+import { MembersSettingsLoader } from "@/components/ui";
 
 // Simulated user list with IDs and names
-export const users: IUser[] = [
-  {
-    id: "9a1aeba2-8eee-4939-a7f9-833d49970f58",
-    first_name: "Rahat Uddin",
-    last_name: "Azad",
-    display_name: "rahatuddin786",
-  },
-];
 
 const MeetingMinutesForm = observer(() => {
   const [summary, setSummary] = useState("");
   const { t } = useTranslation();
   const router = useRouter();
+  const {
+    workspace: { fetchWorkspaceMembers, workspaceMemberIds, getSearchedWorkspaceMemberIds, getWorkspaceMemberDetails },
+  } = useMember();
   const { meetings, updateMeeting } = useMeeting();
   const { meetingId, workspaceSlug } = useParams();
+
+  // useSWR(
+  //   workspaceSlug
+  //     ? async () => {
+  //         await fetchWorkspaceMembers(workspaceSlug.toString());
+  //       }
+  //     : null
+  // );
+
+  if (!workspaceMemberIds) return <MembersSettingsLoader />;
+
   const meetingData = meetingId ? meetings?.find((m) => m.id === meetingId) : undefined;
 
   // if (!meetingData?.id) {
@@ -132,6 +141,24 @@ const MeetingMinutesForm = observer(() => {
     }
   };
 
+  // derived values
+  const searchedMemberIds = getSearchedWorkspaceMemberIds("");
+  const memberDetails = searchedMemberIds?.map((memberId) => getWorkspaceMemberDetails(memberId));
+
+  const users = memberDetails?.map((data) => {
+    const { avatar, avatar_url, display_name, email, id, first_name, last_name }: any = data?.member;
+    return {
+      avatar,
+      avatar_url,
+      display_name,
+      email,
+      id,
+      first_name,
+      last_name,
+    };
+  });
+  console.log("members_data", meetingData, searchedMemberIds);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -214,9 +241,7 @@ const MeetingMinutesForm = observer(() => {
                   className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
                 >
                   <option disabled>Select owner</option>
-                  {users.map((u, i) => (
-                    <option key={i}>{u?.display_name}</option>
-                  ))}
+                  {users?.map((u, i) => <option key={i}>{u?.display_name}</option>)}
                 </select>
               </div>
               <div>
