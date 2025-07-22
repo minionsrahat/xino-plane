@@ -52,6 +52,9 @@ const MeetingMinutesForm = observer(() => {
       }));
       setAgendaItems(agendasWithDefaults);
     }
+    if (meetingData?.summary) {
+      setSummary(meetingData?.summary);
+    }
   }, [meetingData]);
 
   const handleUpdateAgenda = (index: number, field: string, value: any) => {
@@ -190,7 +193,7 @@ const MeetingMinutesForm = observer(() => {
           <label className="text-sm font-semibold text-gray-300 mb-2 block">Participants</label>
           <input
             type="text"
-            value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
+            value={meetingData?.participants?.map((p) => p?.display_name)?.join(", ") ?? ""}
             readOnly
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
           />

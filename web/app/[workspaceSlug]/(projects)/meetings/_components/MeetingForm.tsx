@@ -48,6 +48,7 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
   //         await fetchWorkspaceMembers(workspaceSlug.toString());
   //       }
   //     : null
+
   // );
 
   if (!workspaceMemberIds) return <MembersSettingsLoader />;
@@ -59,12 +60,17 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
         setSubject(data?.subject);
         setDescription(data?.description);
         setChairperson(data?.chairperson ?? {});
-        setStartTime(data?.start_time);
-        setEndTime(data?.end_time);
+        setStartTime(extractDateOrTime(data?.start_time, "time"));
+        setEndTime(extractDateOrTime(data?.end_time, "time"));
+        setDate(extractDateOrTime(data?.start_time, "date"));
         setHost(data?.host ?? {});
+        setParticipants(data?.participants);
+        // setAgendaItems(data?.agendas)
       }
     }
   }, [meetingMode, meetingId]);
+
+  // console.log("load_data", startTime, endTime, date);
 
   // derived values
   const searchedMemberIds = getSearchedWorkspaceMemberIds("");
@@ -447,4 +453,25 @@ export default function MeetingForm({ mode: meetingMode, id: meetingId }: { mode
       </div>
     </form>
   );
+}
+
+export function extractDateOrTime(isoString: string, type: "date" | "time"): string {
+  if (!isoString) return "";
+
+  const dateObj = new Date(isoString);
+  if (isNaN(dateObj.getTime())) return "";
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  if (type === "date") {
+    return isoString.split("T")[0]; // Extracts "YYYY-MM-DD"
+  }
+
+  if (type === "time") {
+    const timePart = isoString.split("T")[1]; // "HH:mm:ssZ"
+    const [hh, mm] = timePart.split(":");
+    return `${hh}:${mm}`;
+  }
+
+  return "";
 }

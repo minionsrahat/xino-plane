@@ -119,7 +119,7 @@ const MeetingCardList = observer(() => {
                     <div className="flex gap-4 justify-center p-1">
                       {/* {!(meeting?.id === "Me") && !(meetingGroup?.label === "Completed") && ( */}
                       {/* Meeting Minute */}
-                      {!isLive && (
+                      {isLive && (
                         <div className="relative group">
                           <Link
                             href={`/${workspaceSlug?.toString()}/meetings/meeting-minute/${meeting?.id}`}

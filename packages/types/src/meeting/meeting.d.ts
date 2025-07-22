@@ -45,6 +45,7 @@ export interface IMeeting {
   participants: IUser[];
   agendas: IAgenda[];
   attachments: IAttachment[];
+  summary?: string;
 }
 
 export interface IMeetingGroup {

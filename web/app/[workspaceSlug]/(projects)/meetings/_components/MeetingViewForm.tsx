@@ -74,7 +74,7 @@ const MeetingViewForm = observer(() => {
           <input
             type="text"
             readOnly
-            value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
+            value={meetingData?.participants?.map((p) => p?.display_name)?.join(", ") ?? ""}
             className="w-full bg-gray-800"
           />
         </div>
@@ -82,32 +82,68 @@ const MeetingViewForm = observer(() => {
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Agenda Items</h3>
-        <div className="space-y-4">
-          {meetingData?.agendas?.map((item, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 md:col-span-5">
-                <label className="block mb-1 font-medium">Title</label>
-                <p className="bg-gray-800 px-4 py-2 rounded-lg">{item?.title}</p>
-              </div>
-
-              <div className="col-span-12 md:col-span-4">
-                <label className="block mb-1 font-medium">Assignees</label>
-                <div className="bg-gray-800 px-4 py-2 rounded-lg flex flex-wrap gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={meetingData?.participants?.map((p) => (p as any)?.user?.display_name)?.join(", ") ?? ""}
-                    className="w-full bg-gray-800"
-                  />
+        <div className="space-y-6">
+          {meetingData?.agendas?.map((agenda, agendaIdx) => (
+            <div
+              key={agenda.id || `agenda-${agendaIdx}`}
+              className="border border-gray-700 rounded-lg p-5 space-y-5 bg-gray-800"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-semibold text-gray-300 mb-1">Agenda</label>
+                  <p className="bg-gray-900 px-4 py-2 rounded text-white">{agenda?.title || "—"}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-300 mb-1">Owner</label>
+                  <p className="bg-gray-900 px-4 py-2 rounded text-white">
+                    {agenda?.assignees?.map((u) => u?.display_name).join(", ") || "—"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-1">Time (Minutes)</label>
+                  <p className="bg-gray-900 px-4 py-2 rounded text-white">{agenda?.duration_minutes ?? "—"}</p>
                 </div>
               </div>
 
-              <div className="col-span-12 md:col-span-2">
-                <label className="block mb-1 font-medium">Duration (min)</label>
-                <p className="bg-gray-800 px-4 py-2 rounded-lg">{item?.duration_minutes}</p>
-              </div>
+              {agenda?.issues?.length ? (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold text-gray-300">Action Items</h4>
+                  {agenda?.issues?.map((issue, issueIdx) => (
+                    <div
+                      key={issueIdx}
+                      className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-gray-900 p-4 rounded border border-gray-700"
+                    >
+                      <div className="md:col-span-4">
+                        <label className="text-sm font-medium text-gray-300 block mb-1">Action</label>
+                        <p className="bg-gray-800 px-3 py-2 rounded text-white">{issue?.name || "—"}</p>
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <label className="text-sm font-medium text-gray-300 block mb-1">Assignees</label>
+                        <p className="bg-gray-800 px-4 py-2 rounded text-white">
+                          {issue?.assignees?.map((u) => u?.display_name).join(", ") || "—"}
+                        </p>
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <label className="text-sm font-medium text-gray-300 block mb-1">Due Date</label>
+                        <p className="bg-gray-800 px-3 py-2 rounded text-white">{issue?.target_date || "—"}</p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-300 block mb-1">Priority</label>
+                        <p className="bg-gray-800 px-3 py-2 rounded text-white">{issue?.priority || "—"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                ""
+              )}
             </div>
-          )) || <p>No agenda items.</p>}
+          ))}
+
+          {meetingData?.agendas?.length === 0 && <p className="text-sm text-gray-400">No agenda items found.</p>}
         </div>
       </div>
 
@@ -134,6 +170,21 @@ const MeetingViewForm = observer(() => {
           )) || <p className="bg-gray-800 px-4 py-2 rounded-lg">No attachments</p>}
         </div>
       </div>
+
+      {meetingData?.summary ? (
+        <div>
+          <label className="text-sm font-semibold text-gray-300 block mb-2">Meeting Summary</label>
+          <textarea
+            value={meetingData?.summary}
+            readOnly
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+            rows={4}
+            placeholder="Final meeting summary..."
+          />
+        </div>
+      ) : (
+        ""
+      )}
     </div>
   );
 });
